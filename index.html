@@ -1,4 +1,9 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light}img{max-width:100%}</style>
 <title>Coretan</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -95,6 +100,8 @@ input[type=color]{height:38px;width:56px;padding:2px;border:1px solid var(--line
 @media (prefers-reduced-motion:reduce){.bar{transition:none}}
 </style>
 
+</head>
+<body>
 <main class="app">
   <header class="top">
     <div class="brand">
@@ -319,6 +326,7 @@ window.__coretan = { $: $, cv: cv, cx: cx, state: state, fmt: fmt, svgURI: svgUR
   sampleSVGs: sampleSVGs, newScene: newScene, total: total, layoutTimes: layoutTimes,
   getT: function () { return curT; }, setT: function (v) { curT = v; } };
 })();
+
 /* Tangan + alat tulis. Dikerjakan di bingkai lokal: ujung alat di (0,0), sumbu alat ke +x, lalu seluruh grup diputar -45 derajat. */
 (function () {
 'use strict';
@@ -445,6 +453,7 @@ function buildHandSVG(skinKey, toolKey) {
 K.SKINS = SKINS; K.TOOLS = TOOLS; K.buildHandSVG = buildHandSVG;
 K.HAND_TIP = { x: 40, y: 360, size: 400 };
 })();
+
 (function () {
 'use strict';
 var K = window.__coretan, cx = K.cx, cv = K.cv, state = K.state;
@@ -493,13 +502,16 @@ function buildEdges(s) {
   var d = x.getImageData(0, 0, w, h).data, N = w * h, g = new Float32Array(N), b = new Float32Array(N), m = new Float32Array(N);
   var i, xx, yy;
   for (i = 0; i < N; i++) g[i] = 0.299 * d[i * 4] + 0.587 * d[i * 4 + 1] + 0.114 * d[i * 4 + 2];
-  for (yy = 0; yy < h; yy++) for (xx = 0; xx < w; xx++) {
-    var sum = 0, cnt = 0;
-    for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) {
-      var px = xx + dx, py = yy + dy;
-      if (px >= 0 && px < w && py >= 0 && py < h) { sum += g[py * w + px]; cnt++; }
+  for (var pass = 0; pass < 2; pass++) {
+    for (yy = 0; yy < h; yy++) for (xx = 0; xx < w; xx++) {
+      var sum = 0, cnt = 0;
+      for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) {
+        var px = xx + dx, py = yy + dy;
+        if (px >= 0 && px < w && py >= 0 && py < h) { sum += g[py * w + px]; cnt++; }
+      }
+      b[yy * w + xx] = sum / cnt;
     }
-    b[yy * w + xx] = sum / cnt;
+    if (pass === 0) g.set(b);
   }
   var max = 0;
   for (yy = 1; yy < h - 1; yy++) for (xx = 1; xx < w - 1; xx++) {
@@ -514,7 +526,7 @@ function buildEdges(s) {
     for (i = 0; i < N; i++) bins[Math.min(511, Math.floor(m[i] / max * 511))]++;
     var bi = 511;
     for (; bi > 0; bi--) { acc += bins[bi]; if (acc >= need) break; }
-    T = Math.max(4, (bi / 511) * max);
+    T = Math.max(75 - detail * 0.45, (bi / 511) * max);
   }
   var a = new Uint8Array(N);
   for (i = 0; i < N; i++) a[i] = Math.round(clamp((m[i] - T * 0.6) / (T * 0.5), 0, 1) * 255);
@@ -606,6 +618,7 @@ function drawScene(s, lt, dur, W, H, noOut) {
 K.fitRect = fitRect; K.drawScene = drawScene; K.prepEdges = prepEdges; K.loadHand = loadHand; K.drawHand = drawHand;
 K.clamp = clamp; K.ease = ease; K.drawTime = drawTime; K.speedPct = speedPct;
 })();
+
 (function () {
 'use strict';
 var K = window.__coretan, cx = K.cx, cv = K.cv, state = K.state, clamp = K.clamp, ease = K.ease;
@@ -707,6 +720,11 @@ function render(t) {
   var cur = L[L.length - 1];
   for (var i = 0; i < L.length; i++) { if (t < L[i].start + L[i].dur) { cur = L[i]; break; } }
   var lt = clamp(t - cur.start, 0, cur.dur);
+  if (cur.kind === 'scene' && cur.i === 0 && t <= 0.001 && !state.playing && !state.exporting) {
+    /* pratinjau awal: adegan pertama tampil utuh, bukan kanvas kosong */
+    K.drawScene(cur.s, Math.min(cur.dur - 0.01, K.drawTime(cur.s, cur.dur) + 0.8), cur.dur, W, H, true);
+    return;
+  }
   if (cur.kind === 'tr') drawTransition(cur, lt, W, H);
   else K.drawScene(cur.s, lt, cur.dur, W, H, cur.trAfter);
 }
@@ -779,6 +797,7 @@ function pause() {
 
 K.render = render; K.play = play; K.stop = stop; K.pause = pause;
 })();
+
 (function () {
 'use strict';
 var K = window.__coretan, $ = K.$, state = K.state, cv = K.cv;
@@ -1001,6 +1020,7 @@ K.renderList = renderList; K.updateTotals = updateTotals; K.syncPlayBtn = syncPl
 var refreshExportInfo = function () {};
 K.setRefresh = function (fn) { refreshExportInfo = fn; };
 })();
+
 (function () {
 'use strict';
 var K = window.__coretan, $ = K.$, state = K.state, cv = K.cv;
@@ -1039,11 +1059,23 @@ function refreshExportInfo() {
 K.setRefresh(refreshExportInfo);
 
 /* ---------- simpan ---------- */
-function saveResult() {
+function anchorSave(name) {
+  var a = document.createElement('a');
+  a.href = result.url; a.download = name; a.style.display = 'none';
+  document.body.appendChild(a); a.click();
+  setTimeout(function () { if (a.parentNode) a.parentNode.removeChild(a); }, 1500);
+}
+function saveResult(auto) {
   if (!result.blob) return;
   var name = 'coretan-video.' + result.ext;
   dlPromise.then(function (dl) {
-    if (!dl) { K.setMsg('Penyimpanan langsung tidak tersedia di tampilan ini. Tekan lama atau klik kanan pada video di atas untuk menyimpannya.', 'err'); return; }
+    if (!dl) {
+      /* halaman mandiri (mis. GitHub Pages): unduhan biasa, hanya setelah tombol ditekan */
+      if (auto) { K.setMsg('Ekspor selesai. Tekan Simpan ke perangkat untuk mengunduh videonya.', 'ok'); return; }
+      anchorSave(name);
+      K.setMsg('Mengunduh ' + name + '. Jika tidak muncul, tekan lama atau klik kanan pada video lalu pilih simpan.', 'ok');
+      return;
+    }
     return dl.save({ filename: name, data: result.blob }).then(function () {
       K.setMsg('Video disimpan sebagai ' + name + '.', 'ok');
     }).catch(function (err) {
@@ -1055,7 +1087,7 @@ function saveResult() {
     });
   });
 }
-$('#saveBtn').addEventListener('click', saveResult);
+$('#saveBtn').addEventListener('click', function () { saveResult(false); });
 
 /* ---------- ekspor ---------- */
 function setExporting(on) {
@@ -1097,8 +1129,9 @@ function exportVideo() {
       $('#resVideo').src = result.url;
       $('#resMeta').textContent = result.ext.toUpperCase() + ' · ' + (blob.size / 1048576).toFixed(1) + ' MB · ' + K.fmt(tot);
       $('#result').hidden = false;
-      K.setMsg('Ekspor selesai. Mengajukan penyimpanan…', 'ok');
-      saveResult();
+      K.setMsg('Ekspor selesai.', 'ok');
+      try { $('#result').scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+      saveResult(true);
     };
     rec.onerror = function () { K.setMsg('Perekaman terhenti karena error. Coba ekspor lagi.', 'err'); };
 
@@ -1133,6 +1166,7 @@ Promise.all(K.sampleSVGs.map(function (s, i) { return K.newScene(K.svgURI(s), 'c
   K.setMsg('Tekan Putar untuk melihat sketsa, tangan, dan transisi pada tiga contoh.');
 });
 })();
-</script>
 
-</body></html>
+</script>
+</body>
+</html>
