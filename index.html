@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Caveat+Brush&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Kalam:wght@700&family=Patrick+Hand&family=Permanent+Marker&display=swap">
-<link rel="icon" href="corentanku.png">
+<link rel="icon" type="image/png" href="coretankufav.png">
 <style>
 /* Layout: studio dengan panggung pratinjau di kiri (menempel saat scroll di layar lebar), daftar adegan dan pengaturan di kanan; satu kolom di HP. */
 :root{
@@ -234,7 +234,7 @@ body{padding-block:14px 28px}
 .top{align-items:center}
 .top-r{display:flex;gap:10px;align-items:center}
 .logo{font-size:34px;margin:0;display:flex;align-items:center}
-.logo-img{display:block;height:46px;width:auto;max-width:220px;object-fit:contain}
+.logo-img{display:block;height:56px;width:auto;max-width:260px;object-fit:contain;margin-block:-6px}
 .logo .logo-txt{display:none}
 .logo.nologo .logo-img{display:none}
 .logo.nologo .logo-txt{display:inline}
@@ -304,6 +304,9 @@ body{padding-block:14px 28px}
   .dock{max-height:46vh;overflow:auto;overscroll-behavior:contain}
 }
 
+
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .logo-img{background:#E9F2FC;border-radius:12px;padding:2px 10px;margin-block:0}}
+:root[data-theme="dark"] .logo-img{background:#E9F2FC;border-radius:12px;padding:2px 10px;margin-block:0}
 /* thumbnail adegan berisi banyak gambar */
 .srow .thumb.multi{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:1px;background:var(--line)}
 .srow .thumb.multi img{object-fit:cover;background:#fff;width:100%;height:100%;min-width:0;min-height:0}
@@ -319,7 +322,7 @@ body{padding-block:14px 28px}
   .top{flex:none}
   .brand{flex-direction:row;align-items:center;gap:14px}
   .tag{font-size:13px}
-  .logo-img{height:42px}
+  .logo-img{height:54px}
   .layout{flex:1;min-height:0;grid-template-columns:clamp(262px,19vw,320px) minmax(0,1fr) clamp(300px,22vw,380px);grid-template-rows:minmax(0,1fr) clamp(250px,34vh,420px);gap:10px;align-items:stretch}
   .left-col,.right-col,.stage-col,.dock{min-height:0}
   .stage-col{overflow:hidden;gap:8px}
@@ -354,7 +357,7 @@ body{padding-block:14px 28px}
 }
 @media (min-width:1100px) and (min-height:600px) and (max-height:800px){
   .tag{display:none}
-  .logo-img{height:34px}
+  .logo-img{height:46px}
   .app{padding-block:8px 10px;gap:6px}
   .layout{grid-template-rows:minmax(0,1fr) clamp(240px,37vh,420px)}
   .toolpill button{padding:6px 10px;min-height:30px}
@@ -368,10 +371,10 @@ body{padding-block:14px 28px}
 <main class="app">
   <header class="top">
     <div class="brand">
-      <h1 class="logo"><img class="logo-img" id="logoImg" src="corentanku.png" alt="Coretan"><span class="logo-txt">Coretan</span></h1>
+      <h1 class="logo"><img class="logo-img" id="logoImg" src="coretanku.png" alt="Coretan"><span class="logo-txt">Coretan</span></h1>
       <p class="tag">Ubah gambar dan narasi jadi video yang seolah digambar tangan</p>
     </div>
-    <div class="top-r"><span class="chip" id="modeChip">memuat…</span><button class="btn primary small" id="hdrExport" type="button">Ekspor video</button></div>
+    <div class="top-r"><span class="chip" id="modeChip">memuat…</span><button class="btn small" id="prjOpen" type="button" title="Buka file proyek (.coretan) untuk melanjutkan pekerjaan">Buka proyek</button><button class="btn small" id="prjSave" type="button" title="Simpan semua adegan, gambar, narasi, dan pengaturan ke satu file .coretan">Simpan proyek</button><input id="prjInput" type="file" accept=".coretan,application/octet-stream" hidden><button class="btn primary small" id="hdrExport" type="button">Ekspor video</button></div>
   </header>
 
   <div class="layout" id="layout">
@@ -549,10 +552,10 @@ body{padding-block:14px 28px}
 
       <div class="panel">
         <h2>Gambar tangan sendiri</h2>
-        <p class="hint">Pakai PNG berlatar transparan dan tanpa watermark, karena apa pun yang ada di gambar ikut tampil di video. Tangan sebaiknya masuk dari kanan dengan ujung pena mengarah ke kiri bawah.</p>
+        <p class="hint">Tangan bawaan memakai file tangan.png. Kalau mau mengganti, pakai PNG berlatar transparan dan tanpa watermark, karena apa pun yang ada di gambar ikut tampil di video. Tangan sebaiknya masuk dari kanan dengan ujung pena mengarah ke kiri bawah.</p>
         <div class="actions">
           <button class="btn small" id="handBtn" type="button">Pilih gambar tangan</button>
-          <button class="btn small" id="handReset" type="button" hidden>Pakai tangan bawaan</button>
+          <button class="btn small" id="handReset" type="button" hidden>Kembali ke tangan bawaan</button>
           <input id="handInput" type="file" accept="image/*" hidden>
         </div>
         <div id="handPick" hidden>
@@ -3657,7 +3660,7 @@ $('#bgmInput').addEventListener('change', function (e) {
   if (!f) return;
   K.setMsg('Membaca musik…');
   K.decodeFile(f).then(function (buf) {
-    state.bgm = { buf: buf, name: f.name };
+    state.bgm = { buf: buf, name: f.name, file: f };
     $('#bgmName').textContent = f.name; $('#bgmDel').hidden = false;
     K.setMsg('Musik latar siap.', 'ok');
   }).catch(function () { K.setMsg('File musik itu tidak bisa dibaca. Coba MP3, M4A, atau WAV.', 'err'); });
@@ -3960,6 +3963,19 @@ K.insertScenes = function (list, afterId) {
   if (K.renderStickers) K.renderStickers();
 };
 
+/* kosongkan seluruh proyek (adegan, stiker); pengaturan tidak diubah */
+K.clearAll = function () {
+  K.stop(false);
+  state.scenes.forEach(function (s) {
+    s.items.forEach(function (it) { if (it.url && /^blob:/.test(it.url)) { try { URL.revokeObjectURL(it.url); } catch (e) {} } });
+    if (s.video) { try { s.video.el.pause(); } catch (e) {} try { URL.revokeObjectURL(s.video.url); } catch (e) {} }
+  });
+  state.scenes = []; ui.sceneId = null; ui.itemId = null;
+  state.stickers = []; ui.stickerId = null; if (K.renderStickers) K.renderStickers();
+  K.setT(0); state.fresh = true;
+  K.renderScenes(); K.renderEditor(); K.updateTotals(); K.render(0);
+};
+
 /* ---------- reset semua (dua kali tekan) ---------- */
 var resetBtn = $('#resetAll'), resetTimer = 0;
 function disarm() { clearTimeout(resetTimer); resetBtn.classList.remove('armed'); resetBtn.textContent = 'Reset semua adegan'; }
@@ -3970,17 +3986,9 @@ resetBtn.addEventListener('click', function () {
     resetTimer = setTimeout(disarm, 4000); return;
   }
   disarm();
-  K.stop(false);
   var n = state.scenes.length;
-  state.scenes.forEach(function (s) {
-    s.items.forEach(function (it) { if (it.url && /^blob:/.test(it.url)) { try { URL.revokeObjectURL(it.url); } catch (e) {} } });
-    if (s.video) { try { s.video.el.pause(); } catch (e) {} try { URL.revokeObjectURL(s.video.url); } catch (e) {} }
-  });
-  state.scenes = []; ui.sceneId = null; ui.itemId = null;
-  state.stickers = []; ui.stickerId = null; if (K.renderStickers) K.renderStickers();
-  K.setT(0); state.fresh = true;
-  K.renderScenes(); K.renderEditor(); K.updateTotals(); K.render(0);
-  K.setMsg(n + ' adegan dan semua stiker dihapus. Tekan Tambah adegan untuk mulai lagi.', 'ok');
+  K.clearAll();
+  K.setMsg(n + ' adegan dan semua stiker dihapus. Tekan Adegan baru untuk mulai lagi.', 'ok');
 });
 })();
 
@@ -4037,9 +4045,9 @@ K.respread = function (s) {
   var base = a.reduce(function (m, x) { return Math.min(m, x.start); }, 1e9), step = Math.max(0.5, (s.dur - 0.3 - base) / a.length);
   a.forEach(function (x, i) { x.start = Math.min(r1(base + i * step), r1(Math.max(0, s.dur - 0.3))); x.end = i < a.length - 1 ? Math.min(r1(base + (i + 1) * step), s.dur) : null; if (x.end != null && x.end < x.start + 0.2) x.end = r1(x.start + 0.2); });
 };
-function setNarration(s, buf, name) {
+function setNarration(s, buf, name, blob) {
   stopListen();
-  s.audio = buf; s.audioName = name; s.peaks = null; s.clean = null;
+  s.audio = buf; s.audioName = name; s.audioBlob = blob || null; s.peaks = null; s.clean = null;
   s.dur = Math.max(1, r1(buf.duration + 0.6));
   if (s.spread) K.respread(s);
   s.items.forEach(function (it) { if (it.start > s.dur - 0.2) it.start = Math.max(0, r1(s.dur - 0.2)); });
@@ -4048,10 +4056,11 @@ function setNarration(s, buf, name) {
   K.updateTotals(); K.renderScenes(); K.renderEditor(); K.render(K.getT());
   if (state.set.denoise !== 'off') K.cleanAll(false);
 }
+K.setNarration = setNarration;
 function loadNarrFile(f) {
   var s = K.selScene(); if (!s || !f) return;
   K.setMsg('Membaca audio…');
-  K.decodeFile(f).then(function (buf) { setNarration(s, buf, f.name); })
+  K.decodeFile(f).then(function (buf) { setNarration(s, buf, f.name, f); })
     .catch(function () { K.setMsg('File audio itu tidak bisa dibaca. Coba MP3, M4A, atau WAV.', 'err'); });
 }
 $('#narrUp').addEventListener('click', function () { $('#narrInput').click(); });
@@ -4060,7 +4069,7 @@ $('#narrCap').addEventListener('click', function () { $('#narrCapture').click();
 $('#narrCapture').addEventListener('change', function (e) { var f = e.target.files && e.target.files[0]; e.target.value = ''; loadNarrFile(f); });
 $('#narrDel').addEventListener('click', function () {
   var s = K.selScene(); if (!s) return;
-  stopListen(); s.audio = null; s.audioName = ''; s.peaks = null; s.clean = null;
+  stopListen(); s.audio = null; s.audioName = ''; s.audioBlob = null; s.peaks = null; s.clean = null;
   K.renderScenes(); K.renderEditor();
 });
 function doListen(mode) {
@@ -4130,7 +4139,7 @@ function startRec() {
       var blob = new Blob(chunks, { type: type });
       if (!blob.size) { K.setMsg('Rekaman kosong. Coba lagi.', 'err'); K.renderEditor(); return; }
       K.setMsg('Memproses rekaman…');
-      K.decodeFile(blob).then(function (buf) { setNarration(sc, buf, 'Rekaman suara'); })
+      K.decodeFile(blob).then(function (buf) { setNarration(sc, buf, 'Rekaman suara', blob); })
         .catch(function () { K.setMsg('Rekaman tidak bisa diproses di browser ini. Coba Unggah audio.', 'err'); K.renderEditor(); });
     };
     mr.start(250);
@@ -4832,6 +4841,7 @@ function makeSticker(item, name) {
   return { id: 'k' + (++uid), kind: 'sticker', img: item.img, url: item.url, name: name || item.name || '', x: 0.8, y: 0.6, w: item.w,
            start: 0, end: null, fx: 'fade', fxDur: 0.6, orig: null };
 }
+K.makeSticker = makeSticker;
 K.addStickerItem = function (item, name, opt) {
   opt = opt || {};
   var T = totalT();
@@ -5217,7 +5227,7 @@ K.newVideoScene = function (file) {
     return seekTo(v, Math.min(0.1, v.duration / 2), 8000).catch(function () {});
   }).then(function () {
     var s = K.newSceneObj();
-    s.video = { el: v, url: url, name: file.name, srcDur: v.duration, start: 0, fit: 'contain', vol: 100, audio: null, audioState: 'loading', audioP: null, thumb: makeThumb(v), w: v.videoWidth, h: v.videoHeight };
+    s.video = { el: v, url: url, file: file, name: file.name, srcDur: v.duration, start: 0, fit: 'contain', vol: 100, audio: null, audioState: 'loading', audioP: null, thumb: makeThumb(v), w: v.videoWidth, h: v.videoHeight };
     s.dur = Math.max(0.5, r1(Math.min(600, v.duration)));
     v.addEventListener('seeked', function () { if (!state.playing && !state.exporting) K.render(K.getT()); });
     if (file.size > MAX_DECODE_BYTES) { s.video.audioState = 'big'; }
@@ -5663,30 +5673,60 @@ function drawPreview() {
   pc.moveTo(x - 17, y); pc.lineTo(x + 17, y); pc.moveTo(x, y - 17); pc.lineTo(x, y + 17); pc.stroke();
 }
 
+/* gambar tangan: kecilkan, lalu buat tepi kanan (lengan) memudar supaya tidak terlihat terpotong di tengah layar.
+   Mengembalikan canvas, atau null bila gambar tidak boleh dipakai (mis. halaman dibuka dari file:// sehingga kanvas terkunci). */
+K.makeHandCanvas = function (im) {
+  var m = Math.min(1, 900 / Math.max(im.naturalWidth, im.naturalHeight));
+  var c2 = document.createElement('canvas');
+  c2.width = Math.max(1, Math.round(im.naturalWidth * m)); c2.height = Math.max(1, Math.round(im.naturalHeight * m));
+  var g2 = c2.getContext('2d');
+  g2.drawImage(im, 0, 0, c2.width, c2.height);
+  try { g2.getImageData(0, 0, 1, 1); } catch (e) { return null; }
+  var fw = Math.round(c2.width * 0.12);
+  var gr = g2.createLinearGradient(c2.width - fw, 0, c2.width, 0);
+  gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+  g2.globalCompositeOperation = 'destination-in'; g2.fillStyle = gr; g2.fillRect(0, 0, c2.width, c2.height);
+  g2.globalCompositeOperation = 'source-over';
+  return c2;
+};
+function showHandUI() {
+  var c = state.set.handCustom;
+  $('#handPick').hidden = !c; $('#handReset').hidden = !c || !!c.def;
+  if (c) { $('#handSize').value = String(c.size); $('#handSizeLbl').textContent = c.size + '%'; drawPreview(); }
+}
+/* src = Blob file asli (untuk disimpan di proyek); def = tangan bawaan (tangan.png) */
+K.setHand = function (canvas, o) {
+  o = o || {};
+  state.set.handCustom = { img: canvas, tx: o.tx != null ? o.tx : 0.3, ty: o.ty != null ? o.ty : 0.82, size: o.size != null ? o.size : 55, src: o.src || null, def: !!o.def };
+  showHandUI(); K.render(K.getT());
+};
+function loadImgUrl(url) { return new Promise(function (ok) { var im = new Image(); im.onload = function () { ok(im); }; im.onerror = function () { ok(null); }; im.src = url; }); }
+/* tangan bawaan: file tangan.png di samping index.html. Ujung pensil ada di kiri bawah gambar. */
+var DEF_HAND = { file: 'tangan.png', tx: 0.152, ty: 0.919, size: 50 };
+K.loadDefaultHand = function () {
+  return loadImgUrl(DEF_HAND.file).then(function (im) {
+    if (!im) return false;
+    var c2 = K.makeHandCanvas(im);
+    if (!c2) return false;
+    K.setHand(c2, { def: true, tx: DEF_HAND.tx, ty: DEF_HAND.ty, size: DEF_HAND.size });
+    return true;
+  });
+};
+K.defHand = DEF_HAND;
+
 $('#handBtn').addEventListener('click', function () { $('#handInput').click(); });
 $('#handInput').addEventListener('change', function (e) {
   var f = e.target.files && e.target.files[0]; e.target.value = '';
   if (!f) return;
-  var url = URL.createObjectURL(f), im = new Image();
-  im.onload = function () {
-    var m = Math.min(1, 900 / Math.max(im.naturalWidth, im.naturalHeight));
-    var c2 = document.createElement('canvas');
-    c2.width = Math.max(1, Math.round(im.naturalWidth * m)); c2.height = Math.max(1, Math.round(im.naturalHeight * m));
-    c2.getContext('2d').drawImage(im, 0, 0, c2.width, c2.height);
-    /* tepi kanan (lengan) dibuat memudar agar tidak terlihat terpotong di tengah layar */
-    var g2 = c2.getContext('2d'), fw = Math.round(c2.width * 0.12);
-    var gr = g2.createLinearGradient(c2.width - fw, 0, c2.width, 0);
-    gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
-    g2.globalCompositeOperation = 'destination-in'; g2.fillStyle = gr; g2.fillRect(0, 0, c2.width, c2.height);
-    g2.globalCompositeOperation = 'source-over';
+  var url = URL.createObjectURL(f);
+  loadImgUrl(url).then(function (im) {
     URL.revokeObjectURL(url);
-    state.set.handCustom = { img: c2, tx: 0.3, ty: 0.82, size: parseInt($('#handSize').value, 10) };
-    $('#handPick').hidden = false; $('#handReset').hidden = false;
-    drawPreview(); K.render(K.getT());
+    if (!im) { K.setMsg('File itu tidak bisa dibuka sebagai gambar.', 'err'); return; }
+    var c2 = K.makeHandCanvas(im);
+    if (!c2) { K.setMsg('Gambar itu tidak bisa dipakai di halaman ini.', 'err'); return; }
+    K.setHand(c2, { src: f, tx: 0.3, ty: 0.82, size: parseInt($('#handSize').value, 10) || 55 });
     K.setMsg('Gambar tangan dipasang. Klik ujung pena pada pratinjau kecil agar tangan menggambar tepat di ujungnya.', 'ok');
-  };
-  im.onerror = function () { URL.revokeObjectURL(url); K.setMsg('File itu tidak bisa dibuka sebagai gambar.', 'err'); };
-  im.src = url;
+  });
 });
 prev.addEventListener('click', function (e) {
   var c = state.set.handCustom; if (!c) return;
@@ -5701,11 +5741,234 @@ $('#handSize').addEventListener('input', function (e) {
   if (state.set.handCustom) { state.set.handCustom.size = v; K.render(K.getT()); }
 });
 $('#handReset').addEventListener('click', function () {
-  state.set.handCustom = null;
-  $('#handPick').hidden = true; $('#handReset').hidden = true;
-  K.render(K.getT());
-  K.setMsg('Kembali memakai tangan bawaan.', 'ok');
+  K.loadDefaultHand().then(function (ok) {
+    if (ok) { K.setMsg('Kembali memakai tangan bawaan.', 'ok'); return; }
+    state.set.handCustom = null; showHandUI(); K.render(K.getT());
+    K.setMsg('Kembali memakai tangan gambar sederhana (tangan.png tidak ditemukan).', 'ok');
+  });
 });
+K.loadDefaultHand();
+})();
+
+(function () {
+'use strict';
+/* Simpan & buka proyek: satu file .coretan berisi pengaturan, adegan, gambar, narasi, klip video, stiker, dan musik.
+   Susunan file: "CORETAN1" + panjang header (uint32) + header JSON + blob-blob berurutan. Dibaca bertahap lewat Blob.slice, jadi klip besar tidak dimuat sekaligus. */
+var K = window.__coretan, $ = K.$, state = K.state, ui = K.ui;
+var MAGIC = 'CORETAN1';
+var SKIP_ITEM = { img: 1, url: 1, edge: 1, edgeDetail: 1, id: 1 };
+var SKIP_SCENE = { audio: 1, audioBlob: 1, peaks: 1, clean: 1, cleanLvl: 1, cleanSrc: 1, sample: 1, video: 1, items: 1, id: 1 };
+var SKIP_STK = { img: 1, url: 1, orig: 1, id: 1, sample: 1 };
+var dlPromise = (window.claude && typeof window.claude.use === 'function') ? window.claude.use('downloads').catch(function () { return null; }) : Promise.resolve(null);
+
+function wavBlob(buf) {
+  var ch = buf.numberOfChannels, n = buf.length, sr = buf.sampleRate, ab = new ArrayBuffer(44 + n * ch * 2), v = new DataView(ab), i, c, o = 44;
+  function str(p, s) { for (var k = 0; k < s.length; k++) v.setUint8(p + k, s.charCodeAt(k)); }
+  str(0, 'RIFF'); v.setUint32(4, 36 + n * ch * 2, true); str(8, 'WAVE'); str(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true);
+  v.setUint16(22, ch, true); v.setUint32(24, sr, true); v.setUint32(28, sr * ch * 2, true); v.setUint16(32, ch * 2, true); v.setUint16(34, 16, true);
+  str(36, 'data'); v.setUint32(40, n * ch * 2, true);
+  var data = []; for (c = 0; c < ch; c++) data.push(buf.getChannelData(c));
+  for (i = 0; i < n; i++) for (c = 0; c < ch; c++) { var x = Math.max(-1, Math.min(1, data[c][i])); v.setInt16(o, x < 0 ? x * 0x8000 : x * 0x7fff, true); o += 2; }
+  return new Blob([ab], { type: 'audio/wav' });
+}
+function urlBlob(url) { return fetch(url).then(function (r) { if (!r.ok) throw new Error('blob'); return r.blob(); }); }
+
+/* gambaran proyek (sinkron). srcs = daftar blob yang perlu ikut disimpan */
+function describe() {
+  var srcs = [], map = new Map();
+  function ref(key, getter, name) {
+    if (map.has(key)) return map.get(key);
+    var id = 'b' + srcs.length; srcs.push({ id: id, key: typeof key === 'string' ? key : 'blob:' + (name || '') + ':' + (key.size || 0), get: getter, name: name || '' }); map.set(key, id); return id;
+  }
+  function refUrl(url, name) { return ref(url, function () { return urlBlob(url); }, name); }
+  function refBlob(b, name) { return ref(b, function () { return Promise.resolve(b); }, name); }
+  var h = { app: 'coretan', v: 1, set: {}, hand: null, bgm: null, scenes: [], stickers: [] }, k;
+  for (k in state.set) if (k !== 'handCustom') h.set[k] = state.set[k];
+  var hc = state.set.handCustom;
+  if (hc) h.hand = hc.def ? { def: true, tx: hc.tx, ty: hc.ty, size: hc.size } : (hc.src ? { src: refBlob(hc.src, 'tangan'), tx: hc.tx, ty: hc.ty, size: hc.size } : null);
+  if (state.bgm) h.bgm = { name: state.bgm.name, src: state.bgm.file ? refBlob(state.bgm.file, state.bgm.name) : ref(state.bgm, function () { return Promise.resolve(wavBlob(state.bgm.buf)); }, state.bgm.name) };
+  state.scenes.forEach(function (s) {
+    if (s.sample) return;
+    var sd = { items: [] };
+    for (k in s) if (!SKIP_SCENE[k] && typeof s[k] !== 'object' && typeof s[k] !== 'function') sd[k] = s[k];
+    if (s.audio) sd.audio = { name: s.audioName || '', src: s.audioBlob ? refBlob(s.audioBlob, s.audioName) : ref(s.audio, function () { return Promise.resolve(wavBlob(s.audio)); }, s.audioName) };
+    if (s.video) sd.video = { name: s.video.name, start: s.video.start, fit: s.video.fit, vol: s.video.vol, src: refBlob(s.video.file, s.video.name) };
+    s.items.forEach(function (it) {
+      var d = {};
+      for (k in it) if (!SKIP_ITEM[k] && typeof it[k] !== 'object' && typeof it[k] !== 'function') d[k] = it[k];
+      if (it.kind === 'image') d.src = refUrl(it.url, it.name);
+      sd.items.push(d);
+    });
+    h.scenes.push(sd);
+  });
+  (state.stickers || []).forEach(function (st) {
+    if (st.sample) return;
+    var d = {};
+    for (k in st) if (!SKIP_STK[k] && typeof st[k] !== 'object' && typeof st[k] !== 'function') d[k] = st[k];
+    d.src = refUrl(st.url, st.name);
+    if (st.orig) d.orig = refUrl(st.orig.url, st.name + '-asli');
+    h.stickers.push(d);
+  });
+  return { header: h, srcs: srcs, fp: JSON.stringify(h) + '|' + srcs.map(function (x) { return x.key; }).join('|') };
+}
+var emptyFp = null, savedFp = null;
+function hasContent(d) { return d.header.scenes.length > 0 || d.header.stickers.length > 0; }
+K.projectDirty = function () { var d = describe(); return hasContent(d) && d.fp !== savedFp; };
+
+/* ---------- simpan ---------- */
+function fmtDate() { var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; }; return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '-' + p(d.getHours()) + p(d.getMinutes()); }
+function deliver(blob, name) {
+  return dlPromise.then(function (dl) {
+    if (dl) return dl.save({ filename: name, data: blob }).then(function () { return true; });
+    var a = document.createElement('a'), u = URL.createObjectURL(blob);
+    a.href = u; a.download = name; a.style.display = 'none'; document.body.appendChild(a); a.click();
+    setTimeout(function () { if (a.parentNode) a.parentNode.removeChild(a); URL.revokeObjectURL(u); }, 4000);
+    return true;
+  });
+}
+var busy = false;
+function setBusy(on) { busy = on; ['prjSave', 'prjOpen'].forEach(function (id) { var b = $('#' + id); if (b) b.disabled = on || !!state.exporting; }); }
+K.syncProjectBtns = function () { setBusy(busy); };
+async function save() {
+  if (busy || state.exporting) return;
+  var d = describe();
+  if (!hasContent(d)) { K.setMsg('Belum ada isi untuk disimpan. Tambahkan adegan atau stiker dulu.', 'err'); return; }
+  setBusy(true); K.stop(false);
+  try {
+    K.setMsg('Menyiapkan file proyek…');
+    var blobs = [], hdr = d.header; hdr.blobs = []; hdr.saved = new Date().toISOString();
+    for (var i = 0; i < d.srcs.length; i++) {
+      var b = await d.srcs[i].get();
+      blobs.push(b); hdr.blobs.push({ id: d.srcs[i].id, type: b.type || '', size: b.size, name: d.srcs[i].name });
+    }
+    var hj = new TextEncoder().encode(JSON.stringify(hdr)), len = new Uint8Array(4);
+    new DataView(len.buffer).setUint32(0, hj.length, true);
+    var out = new Blob([MAGIC, len, hj].concat(blobs), { type: 'application/octet-stream' });
+    var name = 'proyek-coretan-' + fmtDate() + '.coretan';
+    await deliver(out, name);
+    savedFp = d.fp;
+    K.setMsg('Proyek disimpan sebagai ' + name + ' (' + (out.size / 1048576).toFixed(1) + ' MB). Lanjutkan kapan saja lewat tombol Buka proyek.', 'ok');
+  } catch (err) {
+    var c = err && err.code;
+    K.setMsg(c === 'declined' ? 'Penyimpanan dibatalkan.' : c === 'too_large' ? 'File proyek terlalu besar untuk disimpan dari tampilan ini. Buka versi mandiri di GitHub Pages.' : 'Proyek gagal disimpan. Coba lagi.', 'err');
+  }
+  setBusy(false);
+}
+
+/* ---------- buka ---------- */
+var CTRL = [['setRes', 'res', 'change'], ['setFps', 'fps', 'change'], ['setBg', 'bg', 'input'], ['setHand', 'hand', 'change', 1], ['setSpeed', 'speed', 'input'], ['setDetail', 'sketchDetail', 'input'],
+  ['setFlow', 'flow', 'change'], ['setTextFont', 'textFont', 'change'], ['setTextColor', 'textColor', 'input'], ['setTool', 'tool', 'change'], ['setSkin', 'skin', 'change'],
+  ['trType', 'trType', 'change'], ['trDir', 'trDir', 'change'], ['trSym', 'trSym', 'change'], ['trColor', 'trColor', 'input'], ['trSize', 'trSize', 'input'], ['trDur', 'trDur', 'input'],
+  ['setNarr', 'narrVol', 'input'], ['setDenoise', 'denoise', 'change'], ['setBgm', 'bgmVol', 'input']];
+function applySettings(set) {
+  var k; for (k in set) state.set[k] = set[k];
+  CTRL.forEach(function (c) {
+    var el = $('#' + c[0]), v = set[c[1]]; if (!el || v == null) return;
+    if (c[3]) el.checked = !!v; else el.value = String(v);
+    el.dispatchEvent(new Event(c[2], { bubbles: true }));
+  });
+}
+function copyInto(dst, src, skip) { for (var k in src) if (!skip[k]) dst[k] = src[k]; }
+function loadImgUrl(url) { return K.loadImage(url); }
+
+async function readProject(file) {
+  var head = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+  if (String.fromCharCode.apply(null, head.slice(0, 8)) !== MAGIC) throw new Error('Ini bukan file proyek Coretan (.coretan).');
+  var hlen = new DataView(head.buffer).getUint32(8, true);
+  var h = JSON.parse(await file.slice(12, 12 + hlen).text()), pos = 12 + hlen, blobs = {};
+  (h.blobs || []).forEach(function (b) { blobs[b.id] = file.slice(pos, pos + b.size, b.type || ''); pos += b.size; });
+  if (pos > file.size) throw new Error('File proyek terpotong atau rusak.');
+  return { h: h, blobs: blobs };
+}
+async function openProject(file) {
+  if (busy || state.exporting || !file) return;
+  setBusy(true); K.stop(false);
+  var missing = 0;
+  try {
+    K.setMsg('Membaca file proyek…');
+    var P = await readProject(file), h = P.h, B = P.blobs, scenes = [], stickers = [], i, j;
+    for (i = 0; i < h.scenes.length; i++) {
+      var sd = h.scenes[i], s;
+      K.setMsg('Membuka adegan ' + (i + 1) + ' dari ' + h.scenes.length + '…');
+      if (sd.video) {
+        var vb = B[sd.video.src]; if (!vb) { missing++; continue; }
+        s = await K.newVideoScene(new File([vb], sd.video.name || 'klip.mp4', { type: vb.type || 'video/mp4' }));
+        if (!s) { missing++; continue; }
+        s.video.start = sd.video.start; s.video.fit = sd.video.fit; s.video.vol = sd.video.vol;
+      } else s = K.newSceneObj();
+      copyInto(s, sd, { items: 1, audio: 1, video: 1 });
+      for (j = 0; j < sd.items.length; j++) {
+        var d = sd.items[j], it;
+        if (d.kind === 'image') {
+          var ib = B[d.src]; if (!ib) { missing++; continue; }
+          it = await K.newImageItem(URL.createObjectURL(ib), d.name, 'main');
+          if (!it) { missing++; continue; }
+          copyInto(it, d, { src: 1 });
+        } else { it = K.newTextItem(d.text); copyInto(it, d, {}); }
+        s.items.push(it);
+      }
+      if (sd.audio && B[sd.audio.src]) {
+        try { s.audio = await K.decodeFile(B[sd.audio.src]); s.audioName = sd.audio.name || ''; s.audioBlob = B[sd.audio.src]; } catch (e) { missing++; }
+      }
+      scenes.push(s);
+    }
+    for (i = 0; i < (h.stickers || []).length; i++) {
+      var kd = h.stickers[i], kb = B[kd.src]; if (!kb) { missing++; continue; }
+      var kit = await K.newImageItem(URL.createObjectURL(kb), kd.name, 'sticker');
+      if (!kit) { missing++; continue; }
+      var st = K.makeSticker(kit, kd.name); copyInto(st, kd, { src: 1, orig: 1 });
+      if (kd.orig && B[kd.orig]) { var ou = URL.createObjectURL(B[kd.orig]), oi = await loadImgUrl(ou); if (oi) st.orig = { img: oi, url: ou }; }
+      stickers.push(st);
+    }
+    var hand = null;
+    if (h.hand) {
+      if (h.hand.def) { if (await K.loadDefaultHand()) hand = true; }
+      else if (B[h.hand.src]) {
+        var hu = URL.createObjectURL(B[h.hand.src]), him = await loadImgUrl(hu); URL.revokeObjectURL(hu);
+        var hc = him && K.makeHandCanvas(him); if (hc) { K.setHand(hc, { src: B[h.hand.src], tx: h.hand.tx, ty: h.hand.ty, size: h.hand.size }); hand = true; }
+      }
+      if (hand && state.set.handCustom) { state.set.handCustom.tx = h.hand.tx; state.set.handCustom.ty = h.hand.ty; state.set.handCustom.size = h.hand.size; }
+    }
+    var bgm = null;
+    if (h.bgm && B[h.bgm.src]) { try { bgm = { buf: await K.decodeFile(B[h.bgm.src]), name: h.bgm.name, file: B[h.bgm.src] }; } catch (e) { missing++; } }
+
+    /* semua bahan siap: ganti proyek yang sedang terbuka */
+    K.clearAll();
+    applySettings(h.set || {});
+    if (state.set.handCustom) { $('#handSize').value = String(state.set.handCustom.size); $('#handSizeLbl').textContent = state.set.handCustom.size + '%'; $('#handSize').dispatchEvent(new Event('input', { bubbles: true })); }
+    state.bgm = bgm;
+    $('#bgmName').textContent = bgm ? bgm.name : 'Belum ada. Musik diulang mengikuti panjang video.'; $('#bgmDel').hidden = !bgm;
+    state.scenes = scenes; state.stickers = stickers; ui.stickerId = null;
+    K.prepEdges();
+    K.renderStickers(); K.updateTotals();
+    if (scenes.length) K.selectScene(scenes[0].id); else { K.renderScenes(); K.renderEditor(); K.render(0); }
+    if (K.showDock) K.showDock('scene');
+    if (state.set.denoise !== 'off') K.cleanAll(true);
+    savedFp = describe().fp;
+    K.setMsg('Proyek dibuka: ' + scenes.length + ' adegan' + (stickers.length ? ', ' + stickers.length + ' stiker' : '') + '.' + (missing ? ' ' + missing + ' bagian tidak bisa dibuka dan dilewati.' : ' Silakan lanjutkan.'), missing ? 'err' : 'ok');
+  } catch (err) {
+    K.setMsg('Proyek tidak bisa dibuka: ' + (err && err.message ? err.message : 'file rusak') + '.', 'err');
+  }
+  setBusy(false);
+}
+
+/* tombol */
+$('#prjSave').addEventListener('click', save);
+var armT = 0, openBtn = $('#prjOpen');
+function disarm() { clearTimeout(armT); openBtn.classList.remove('armed'); openBtn.textContent = 'Buka proyek'; }
+openBtn.addEventListener('click', function () {
+  if (busy || state.exporting) return;
+  if (K.projectDirty() && !openBtn.classList.contains('armed')) {
+    openBtn.classList.add('armed'); openBtn.textContent = 'Ada yang belum disimpan. Tekan lagi';
+    K.setMsg('Pekerjaan sekarang belum disimpan dan akan diganti. Tekan Simpan proyek dulu, atau tekan Buka proyek sekali lagi untuk lanjut.', 'err');
+    armT = setTimeout(disarm, 6000); return;
+  }
+  disarm(); $('#prjInput').click();
+});
+$('#prjInput').addEventListener('change', function (e) { var f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) openProject(f); });
+window.addEventListener('beforeunload', function (e) { if (K.projectDirty()) { e.preventDefault(); e.returnValue = ''; } });
+K.saveProject = save; K.openProject = openProject; K.describeProject = describe;
+emptyFp = describe().fp; savedFp = emptyFp;
 })();
 
 (function () {
@@ -5909,7 +6172,7 @@ function setExporting(on) {
   $('#cancelBtn').hidden = !(on && offlineMode);
   $('#exportNote').textContent = offlineMode ? 'Biarkan tab ini tetap terbuka sampai selesai.' : 'Biarkan layar tetap menyala dan tab ini terbuka sampai selesai. Video direkam selama durasinya berjalan.';
   $('#exportBtn').textContent = on ? (offlineMode ? 'Merender…' : 'Merekam…') : 'Ekspor video';
-  ['setRes', 'setFps', 'setBg', 'setHand', 'setFlow', 'setTextFont', 'setTextColor', 'setSpeed', 'setTool', 'setSkin', 'setDetail', 'allAnim', 'handBtn', 'handReset', 'handSize', 'trType', 'trDir', 'trSym', 'trColor', 'trSize', 'trDur', 'resetAll', 'bgmBtn'].forEach(function (id) { var n = $('#' + id); if (n) n.disabled = on; });
+  ['setRes', 'setFps', 'setBg', 'setHand', 'setFlow', 'setTextFont', 'setTextColor', 'setSpeed', 'setTool', 'setSkin', 'setDetail', 'allAnim', 'handBtn', 'handReset', 'handSize', 'trType', 'trDir', 'trSym', 'trColor', 'trSize', 'trDur', 'resetAll', 'bgmBtn', 'prjSave', 'prjOpen'].forEach(function (id) { var n = $('#' + id); if (n) n.disabled = on; });
   if (on && K.showPane) K.showPane('exp');
   if (K.syncToolPill) K.syncToolPill();
   K.syncPlayBtn(); K.refreshUI();
