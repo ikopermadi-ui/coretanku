@@ -8,7 +8,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Caveat+Brush&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Kalam:wght@700&family=Patrick+Hand&family=Permanent+Marker&display=swap">
 <style>
 /* Layout: studio dengan panggung pratinjau di kiri (menempel saat scroll di layar lebar), daftar adegan dan pengaturan di kanan; satu kolom di HP. */
 :root{
@@ -72,6 +72,10 @@ h2{font-size:15px;font-weight:700;letter-spacing:.01em}
 #resetAll{margin-top:10px}
 .tools{justify-content:space-between}
 .tools .grp{display:flex;flex-direction:column;gap:4px}
+.txt{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;min-width:0}
+.txt label.f:first-child{flex:1 1 180px}
+.txt textarea{font:inherit;font-size:14px;line-height:1.35;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);resize:vertical;min-height:54px;width:100%;box-sizing:border-box}
+.fontprev{margin:10px 0 0;font-size:26px;line-height:1.3;color:var(--ink);overflow-wrap:anywhere}
 @media (max-width:480px){.scene{grid-template-columns:70px minmax(0,1fr) auto;gap:8px;padding:8px}}
 .tools .add{min-height:36px;padding:0 10px;font-size:13px;white-space:nowrap;align-self:flex-end}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -184,6 +188,13 @@ input[type=color]{height:38px;width:56px;padding:2px;border:1px solid var(--line
           </label>
         </div>
         <label class="chk"><input id="setHand" type="checkbox" checked> Tampilkan tangan yang menggambar</label>
+        <label class="f">Alur gerak tangan
+          <select id="setFlow">
+            <option value="tulis" selected>Menulis: baris kiri ke kanan, lalu turun</option>
+            <option value="kolom">Kolom kiri ke kanan (naik-turun)</option>
+            <option value="zigzag">Zig-zag atas ke bawah</option>
+          </select>
+        </label>
         <div class="grid2">
           <label class="f">Alat tulis
             <select id="setTool"><option value="pulpen">Pulpen biru</option><option value="spidol">Spidol hitam</option><option value="pensil">Pensil</option></select>
@@ -201,6 +212,23 @@ input[type=color]{height:38px;width:56px;padding:2px;border:1px solid var(--line
             <input id="setNarr" type="range" min="0" max="100" step="5" value="100">
           </label>
         </div>
+      </div>
+
+      <div class="panel">
+        <h2>Teks pada adegan</h2>
+        <p class="hint">Isi teks di kartu adegan. Setelah gambar selesai, tangan menuliskannya dari kiri ke kanan.</p>
+        <div class="grid2">
+          <label class="f">Jenis huruf
+            <select id="setTextFont"><option value="kalam">Kalam (tegas, mudah dibaca)</option><option value="patrick">Patrick Hand (ramah)</option><option value="architect">Architects Daughter (rapi)</option><option value="marker">Permanent Marker (spidol tebal)</option><option value="brush">Caveat Brush (kuas)</option><option value="sans">Figtree (huruf polos tebal)</option></select>
+          </label>
+          <label class="f">Ukuran huruf
+            <select id="setTextSize"><option value="s">Kecil</option><option value="m" selected>Sedang</option><option value="l">Besar</option><option value="xl">Sangat besar</option></select>
+          </label>
+          <label class="f">Warna teks
+            <input id="setTextColor" type="color" value="#142320">
+          </label>
+        </div>
+        <p class="fontprev" id="fontPrev">Halo, ini contoh tulisan tangan 123</p>
       </div>
 
       <div class="panel">
@@ -2141,7 +2169,7 @@ var cv = $('#stage'), cx = cv.getContext('2d');
 var state = {
   scenes: [], bgm: null, playing: false, exporting: false,
   set: { res: '720', fps: 30, bg: '#ffffff', fit: 'contain', hand: true, speed: 5, tool: 'pulpen', skin: 'sawo', sketchDetail: 50,
-         narrVol: 100, bgmVol: 25, handCustom: null,
+         narrVol: 100, bgmVol: 25, handCustom: null, flow: 'tulis', textFont: 'kalam', textSize: 'm', textColor: '#142320',
          trType: 'pan', trDir: 'right', trSym: 'arrow', trColor: '#1D4ED8', trSize: 100, trDur: 1.6 }
 };
 var uid = 0, curT = 0;
@@ -2196,7 +2224,7 @@ function newScene(url, name, sample) {
   return new Promise(function (resolve) {
     var img = new Image();
     img.onload = function () {
-      resolve({ id: ++uid, img: img, url: url, name: name || '', anim: 'sketch', speed: 'auto', dur: 5, audio: null, audioName: '', sample: !!sample, edge: null, edgeDetail: -1 });
+      resolve({ id: ++uid, img: img, url: url, name: name || '', anim: 'sketch', speed: 'auto', dur: 5, audio: null, audioName: '', sample: !!sample, edge: null, edgeDetail: -1, text: '', textPos: 'bawah' });
     };
     img.onerror = function () { resolve(null); };
     img.src = url;
@@ -2454,75 +2482,278 @@ function prepEdges() {
   state.scenes.forEach(function (s) { if (s.anim === 'sketch') buildEdges(s); });
 }
 
-/* ---------- sapuan pengungkap (zig-zag) ---------- */
-function sweepClip(v, R, p) {
-  var bh = v.h / R, pr = p * R, r = Math.min(R - 1, Math.floor(pr)), frac = p >= 1 ? 1 : pr - r;
+/* ---------- sapuan pengungkap ----------
+   mode 'tulis'  : baris demi baris, selalu kiri ke kanan (seperti orang menulis), lalu tangan kembali ke kiri
+   mode 'kolom'  : kolom demi kolom dari kiri ke kanan (naik-turun)
+   mode 'zigzag' : baris atas ke bawah, bolak-balik (cara lama) */
+function sweepClip(v, R, p, mode) {
+  mode = mode || state.set.flow || 'tulis';
+  var tip, pr, r, frac;
   cx.beginPath();
+  if (mode === 'kolom') {
+    var C = Math.max(4, Math.round(R * 1.7)), bw = v.w / C;
+    pr = p * C; r = Math.min(C - 1, Math.floor(pr)); frac = p >= 1 ? 1 : pr - r;
+    if (r > 0) cx.rect(v.x, v.y, Math.ceil(r * bw) + 1, v.h);
+    if (r % 2 === 0) cx.rect(v.x + r * bw, v.y, bw + 1, v.h * frac);
+    else cx.rect(v.x + r * bw, v.y + v.h * (1 - frac), bw + 1, v.h * frac);
+    cx.clip();
+    return { x: v.x + (r + 0.5) * bw + Math.sin(frac * 14) * bw * 0.3, y: r % 2 === 0 ? v.y + v.h * frac : v.y + v.h * (1 - frac) };
+  }
+  var bh = v.h / R;
+  pr = p * R; r = Math.min(R - 1, Math.floor(pr)); frac = p >= 1 ? 1 : pr - r;
+  if (mode === 'zigzag') {
+    if (r > 0) cx.rect(v.x, v.y, v.w, Math.ceil(r * bh) + 1);
+    if (r % 2 === 0) cx.rect(v.x, v.y + r * bh, v.w * frac, bh + 1);
+    else cx.rect(v.x + v.w * (1 - frac), v.y + r * bh, v.w * frac, bh + 1);
+    cx.clip();
+    return { x: r % 2 === 0 ? v.x + v.w * frac : v.x + v.w * (1 - frac), y: v.y + (r + 0.5) * bh + Math.sin(frac * 14) * bh * 0.3 };
+  }
+  /* tulis */
+  var last = r === R - 1, WR = last ? 1 : 0.86, w = frac >= WR ? 1 : frac / WR;
   if (r > 0) cx.rect(v.x, v.y, v.w, Math.ceil(r * bh) + 1);
-  if (r % 2 === 0) cx.rect(v.x, v.y + r * bh, v.w * frac, bh + 1);
-  else cx.rect(v.x + v.w * (1 - frac), v.y + r * bh, v.w * frac, bh + 1);
+  cx.rect(v.x, v.y + r * bh, v.w * w, bh + 1);
   cx.clip();
-  return { x: r % 2 === 0 ? v.x + v.w * frac : v.x + v.w * (1 - frac), y: v.y + (r + 0.5) * bh + Math.sin(frac * 14) * bh * 0.3 };
+  if (frac < WR || last) tip = { x: v.x + v.w * w, y: v.y + (r + 0.5) * bh + Math.sin(w * 14) * bh * 0.3 };
+  else {
+    var rf = ease((frac - WR) / (1 - WR));
+    tip = { x: v.x + v.w * (1 - rf), y: v.y + (r + 0.5 + rf) * bh };
+  }
+  return tip;
 }
-function fitRect(img, W, H, mode) {
+/* box = {x,y,w,h}: area tempat gambar boleh berada */
+function fitRect(img, box, mode) {
   var iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
-  var m = mode === 'cover' ? 0 : Math.round(Math.min(W, H) * 0.04);
-  var aw = W - 2 * m, ah = H - 2 * m;
+  var m = mode === 'cover' ? 0 : Math.round(Math.min(box.w, box.h) * 0.04);
+  var aw = box.w - 2 * m, ah = box.h - 2 * m;
   var r = mode === 'cover' ? Math.max(aw / iw, ah / ih) : Math.min(aw / iw, ah / ih);
   var w = iw * r, h = ih * r;
-  return { x: (W - w) / 2, y: (H - h) / 2, w: w, h: h };
+  return { x: box.x + (box.w - w) / 2, y: box.y + (box.h - h) / 2, w: w, h: h };
 }
 
 /* ---------- satu adegan ---------- */
 function drawScene(s, lt, dur, W, H, noOut) {
   var set = state.set;
   var out = noOut ? 1 : clamp((dur - lt) / 0.35, 0, 1);
-  var f = fitRect(s.img, W, H, set.fit);
+  var T = K.sceneText ? K.sceneText(s, W, H) : null;
+  var box = T ? T.box : { x: 0, y: 0, w: W, h: H };
+  var f = fitRect(s.img, box, (T && T.pos !== 'timpa') ? 'contain' : set.fit);
+  var dd = drawTime(s, dur), tt = T ? K.textTime(s, T, dd) : 0, di = dd - tt;
+  var tip = null, handA = 1;
   cx.save();
   cx.globalAlpha = out;
 
   if (s.anim === 'hand' || s.anim === 'sketch') {
-    var dd = drawTime(s, dur);
-    var vx = Math.max(0, f.x), vy = Math.max(0, f.y);
-    var vis = { x: vx, y: vy, w: Math.min(W, f.x + f.w) - vx, h: Math.min(H, f.y + f.h) - vy };
-    var tip = null, handA = 1;
+    var vx = Math.max(box.x, f.x), vy = Math.max(box.y, f.y);
+    var vis = { x: vx, y: vy, w: Math.min(box.x + box.w, f.x + f.w) - vx, h: Math.min(box.y + box.h, f.y + f.h) - vy };
     if (s.anim === 'hand') {
-      var p = Math.min(1, lt / dd);
+      var p = Math.min(1, lt / di);
       cx.save(); tip = sweepClip(vis, 10, p); cx.drawImage(s.img, f.x, f.y, f.w, f.h); cx.restore();
-      if (p >= 1) handA = Math.max(0, 1 - (lt - dd) / 0.3);
+      if (p >= 1) handA = Math.max(0, 1 - (lt - di) / 0.3);
     } else {
       var edge = buildEdges(s);
-      var dl = dd * 0.55;
+      var dl = di * 0.55;
       var pl = Math.min(1, lt / dl);
-      var pc = clamp((lt - dl) / (dd - dl), 0, 1);
+      var pc = clamp((lt - dl) / (di - dl), 0, 1);
       if (lt > dl) {
         cx.save(); tip = sweepClip(vis, 6, pc); cx.drawImage(s.img, f.x, f.y, f.w, f.h); cx.restore();
       }
-      var fadeLen = Math.max(0.3, Math.min(0.7, dur - dd - 0.05));
-      var la = lt <= dd ? 1 : clamp(1 - (lt - dd) / fadeLen, 0, 1);
+      var fadeLen = Math.max(0.3, Math.min(0.7, dur - di - 0.05));
+      var la = lt <= di ? 1 : clamp(1 - (lt - di) / fadeLen, 0, 1);
       if (la > 0) {
         cx.save(); cx.globalAlpha *= la * 0.95;
         var t2 = sweepClip(vis, 14, pl);
         cx.drawImage(edge, f.x, f.y, f.w, f.h); cx.restore();
         if (lt <= dl) tip = t2;
       }
-      if (lt > dd) handA = Math.max(0, 1 - (lt - dd) / 0.3);
+      if (lt > di) handA = Math.max(0, 1 - (lt - di) / 0.3);
     }
-    if (set.hand && tip && handA > 0) drawHand(tip.x, tip.y, H, handA * Math.min(1, lt / 0.2 + 0.001));
+    if (tip) handA *= Math.min(1, lt / 0.2 + 0.001);
   } else if (s.anim === 'fade') {
-    cx.globalAlpha = out * Math.min(1, lt / 0.8);
+    cx.save(); cx.globalAlpha = out * Math.min(1, lt / 0.8);
     cx.drawImage(s.img, f.x, f.y, f.w, f.h);
+    cx.restore();
+    handA = 0;
   } else {
     var k = 1 + 0.12 * (lt / dur);
-    cx.globalAlpha = out * Math.min(1, lt / 0.6);
+    cx.save(); cx.globalAlpha = out * Math.min(1, lt / 0.6);
     cx.translate(W / 2, H / 2); cx.scale(k, k); cx.translate(-W / 2, -H / 2);
     cx.drawImage(s.img, f.x, f.y, f.w, f.h);
+    cx.restore();
+    handA = 0;
   }
+
+  if (T && lt > di) {
+    var tp = K.drawText(T, lt - di, tt);
+    if (tp) { tip = tp; handA = Math.min(1, (lt - di) / 0.2 + 0.001) * (lt > dd ? Math.max(0, 1 - (lt - dd) / 0.3) : 1); }
+  }
+  if (set.hand && tip && handA > 0) drawHand(tip.x, tip.y, H, handA);
   cx.restore();
 }
 
 K.fitRect = fitRect; K.drawScene = drawScene; K.prepEdges = prepEdges; K.loadHand = loadHand; K.drawHand = drawHand;
 K.clamp = clamp; K.ease = ease; K.drawTime = drawTime; K.speedPct = speedPct;
+})();
+
+(function () {
+'use strict';
+var K = window.__coretan, cx = K.cx, state = K.state, clamp = K.clamp, ease = K.ease;
+
+var FONTS = {
+  kalam:     { name: 'Kalam (tegas, mudah dibaca)',   fam: '"Kalam","Segoe Print","Comic Sans MS",cursive', w: 700 },
+  patrick:   { name: 'Patrick Hand (ramah)',           fam: '"Patrick Hand","Segoe Print","Comic Sans MS",cursive', w: 400 },
+  architect: { name: 'Architects Daughter (rapi)',     fam: '"Architects Daughter","Segoe Print","Comic Sans MS",cursive', w: 400 },
+  marker:    { name: 'Permanent Marker (spidol tebal)', fam: '"Permanent Marker","Segoe Print","Comic Sans MS",cursive', w: 400 },
+  brush:     { name: 'Caveat Brush (kuas)',            fam: '"Caveat Brush","Segoe Print","Comic Sans MS",cursive', w: 400 },
+  sans:      { name: 'Figtree (huruf polos tebal)',    fam: '"Figtree",system-ui,"Segoe UI",sans-serif', w: 700 }
+};
+var SIZES = { s: 0.05, m: 0.068, l: 0.09, xl: 0.115 };
+var POS = { bawah: 1, atas: 1, kiri: 1, kanan: 1, timpa: 1 };
+K.FONTS = FONTS; K.fontEpoch = 0;
+
+function fontOf() { return FONTS[state.set.textFont] || FONTS.kalam; }
+function specOf(fs) { var f = fontOf(); return f.w + ' ' + Math.round(fs) + 'px ' + f.fam; }
+
+function wrap(text, spec, maxW) {
+  var out = [];
+  cx.save(); cx.font = spec;
+  String(text).split('\n').forEach(function (para) {
+    var words = para.split(/\s+/).filter(Boolean), cur = '';
+    if (!words.length) return;
+    words.forEach(function (w) {
+      var t = cur ? cur + ' ' + w : w;
+      if (cur && cx.measureText(t).width > maxW) { out.push(cur); cur = w; } else cur = t;
+    });
+    if (cur) out.push(cur);
+  });
+  var res = out.map(function (t) { return { t: t, w: cx.measureText(t).width }; });
+  cx.restore();
+  return res;
+}
+
+function layout(s, W, H) {
+  var pos = POS[s.textPos] ? s.textPos : 'bawah';
+  var side = pos === 'kiri' || pos === 'kanan';
+  var zw = side ? W * 0.34 : W * 0.9;
+  var maxH = side ? H * 0.84 : (pos === 'timpa' ? H * 0.3 : H * 0.36);
+  var fs = H * (SIZES[state.set.textSize] || SIZES.m), lines, lh, need, widest;
+  for (var n = 0; n < 16; n++) {
+    lines = wrap(s.text, specOf(fs), zw);
+    lh = fs * 1.28; need = lines.length * lh;
+    widest = lines.reduce(function (a, l) { return Math.max(a, l.w); }, 0);
+    if ((need <= maxH && widest <= zw * 1.001) || fs <= H * 0.028) break;
+    fs *= 0.92;
+  }
+  var pad = H * 0.03, box, top, plate = null, i;
+  if (pos === 'bawah') { var bh = need + pad * 2; box = { x: 0, y: 0, w: W, h: H - bh }; top = H - bh + pad; }
+  else if (pos === 'atas') { var bh2 = need + pad * 2; box = { x: 0, y: bh2, w: W, h: H - bh2 }; top = pad; }
+  else if (pos === 'timpa') { box = { x: 0, y: 0, w: W, h: H }; top = H - need - pad * 1.8; }
+  else if (pos === 'kanan') { var zr = W * 0.38; box = { x: 0, y: 0, w: W - zr, h: H }; top = (H - need) / 2; }
+  else { var zl = W * 0.38; box = { x: zl, y: 0, w: W - zl, h: H }; top = (H - need) / 2; }
+  var x0 = pos === 'kanan' ? W - W * 0.38 + W * 0.02 : W * 0.03;
+  lines.forEach(function (l, k) {
+    l.x = side ? x0 : (W - l.w) / 2;
+    l.y = top + k * lh;
+  });
+  if (pos === 'timpa') {
+    var minx = Math.min.apply(null, lines.map(function (l) { return l.x; }));
+    plate = { x: minx - pad, y: top - pad * 0.6, w: widest + pad * 2, h: need + pad * 1.2, r: pad };
+  }
+  var chars = lines.reduce(function (a, l) { return a + l.t.replace(/\s/g, '').length; }, 0);
+  return { pos: pos, box: box, lines: lines, fs: fs, lh: lh, spec: specOf(fs), plate: plate, chars: chars };
+}
+
+K.sceneText = function (s, W, H) {
+  if (!s.text || !/\S/.test(s.text)) return null;
+  var key = [s.text, s.textPos, state.set.textFont, state.set.textSize, W, H, K.fontEpoch].join('\u0001');
+  if (!s._tl || s._tl.key !== key) s._tl = { key: key, data: layout(s, W, H) };
+  return s._tl.data;
+};
+
+K.textTime = function (s, T, dd) {
+  var tt = Math.max(0.8, T.chars * 0.085 * (K.speedPct(s) / 62));
+  tt = Math.min(tt, dd * 0.6, dd - 0.4);
+  return Math.max(0.3, tt);
+};
+
+var tc = null;
+function tmp(W, h) {
+  if (!tc) tc = document.createElement('canvas');
+  if (tc.width !== W) tc.width = W;
+  if (tc.height !== h) tc.height = h;
+  return tc;
+}
+function rr(x, y, w, h, r) {
+  cx.beginPath();
+  cx.moveTo(x + r, y); cx.arcTo(x + w, y, x + w, y + h, r); cx.arcTo(x + w, y + h, x, y + h, r);
+  cx.arcTo(x, y + h, x, y, r); cx.arcTo(x, y, x + w, y, r); cx.closePath();
+}
+
+/* tl: detik sejak mulai menulis, tt: lama menulis. Mengembalikan posisi ujung pena. */
+K.drawText = function (T, tl, tt) {
+  if (tl < 0) return null;
+  var L = T.lines, n = L.length, pause = T.fs * 1.5, color = state.set.textColor || '#142320';
+  var total = L.reduce(function (a, l) { return a + l.w; }, 0) + pause * (n - 1);
+  var u = clamp(tl / tt, 0, 1) * total;
+  var done = 0, part = -1, front = 0, tip = null, cum = 0, i;
+  var tipY = function (l) { return l.y + T.lh * 0.74; };
+  for (i = 0; i < n; i++) {
+    var l = L[i];
+    if (u >= cum + l.w) {
+      done = i + 1;
+      if (i === n - 1) tip = { x: l.x + l.w, y: tipY(l) };
+      else if (u < cum + l.w + pause) {
+        var rf = ease((u - cum - l.w) / pause), nx = L[i + 1];
+        tip = { x: l.x + l.w + (nx.x - l.x - l.w) * rf, y: tipY(l) + (tipY(nx) - tipY(l)) * rf };
+      }
+      cum += l.w + pause;
+      if (tip) { if (!(i === n - 1)) break; }
+      continue;
+    }
+    part = i; front = Math.max(0, u - cum);
+    tip = { x: l.x + front, y: tipY(l) + Math.sin(front * 0.06) * T.lh * 0.05 };
+    break;
+  }
+  if (!tip) tip = { x: L[0].x, y: tipY(L[0]) };
+
+  cx.save();
+  if (T.plate) {
+    var pa = clamp(tl / 0.25, 0, 1), P = T.plate;
+    cx.save();
+    cx.globalAlpha *= pa; cx.fillStyle = 'rgba(255,255,255,0.9)'; cx.strokeStyle = 'rgba(20,35,32,0.18)'; cx.lineWidth = 2;
+    rr(P.x, P.y, P.w, P.h, P.r); cx.fill(); cx.stroke();
+    cx.restore();
+  }
+  cx.font = T.spec; cx.fillStyle = color; cx.textBaseline = 'middle'; cx.textAlign = 'left';
+  for (i = 0; i < done && i < n; i++) cx.fillText(L[i].t, L[i].x, L[i].y + T.lh / 2);
+  if (part >= 0) {
+    var pl = L[part], W = cx.canvas.width, th = Math.ceil(T.lh * 1.5), c = tmp(W, th), g = c.getContext('2d');
+    g.clearRect(0, 0, W, th);
+    g.font = T.spec; g.fillStyle = color; g.textBaseline = 'middle'; g.textAlign = 'left';
+    g.fillText(pl.t, pl.x, T.lh * 0.7);
+    var fx = pl.x + front, soft = Math.max(4, T.fs * 0.35);
+    g.globalCompositeOperation = 'destination-in';
+    var gr = g.createLinearGradient(fx - soft, 0, fx, 0);
+    gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = gr; g.fillRect(0, 0, W, th);
+    g.globalCompositeOperation = 'source-over';
+    cx.drawImage(c, 0, pl.y + T.lh / 2 - T.lh * 0.7);
+  }
+  cx.restore();
+  return tip;
+};
+
+/* ---------- pemuatan font ---------- */
+K.ensureFonts = function () {
+  if (!document.fonts || !document.fonts.load) return Promise.resolve();
+  var f = fontOf();
+  var p = document.fonts.load(f.w + ' 40px ' + f.fam, 'AaBbÉé123').catch(function () {});
+  var to = new Promise(function (r) { setTimeout(r, 4000); });
+  return Promise.race([p, to]).then(function () { K.fontEpoch++; });
+};
+if (document.fonts && document.fonts.addEventListener) {
+  document.fonts.addEventListener('loadingdone', function () { K.fontEpoch++; if (K.render) K.render(K.getT()); });
+}
+window.addEventListener('load', function () { K.ensureFonts().then(function () { if (K.render) K.render(K.getT()); }); });
 })();
 
 (function () {
@@ -2710,6 +2941,18 @@ var K = window.__coretan, $ = K.$, state = K.state, cv = K.cv;
 var listEl = $('#sceneList');
 
 var ANIMS = [['sketch', 'Sketsa (garis, lalu warna)'], ['hand', 'Tangan menggambar'], ['fade', 'Muncul pelan (fade)'], ['zoom', 'Zoom pelan']];
+var TPOS = [['bawah', 'Di bawah gambar'], ['atas', 'Di atas gambar'], ['kiri', 'Di kiri gambar'], ['kanan', 'Di kanan gambar'], ['timpa', 'Menimpa gambar (alas putih)']];
+/* tampilkan adegan s dalam keadaan hampir selesai (supaya teks yang baru diketik langsung terlihat) */
+function showScene(s) {
+  if (state.playing || state.exporting) return;
+  var L = K.layoutTimes();
+  for (var i = 0; i < L.length; i++) {
+    if (L[i].kind === 'scene' && L[i].s === s) {
+      var t = L[i].start + Math.min(L[i].dur - 0.05, K.drawTime(s, L[i].dur) + 0.4);
+      K.setT(t); updateTotals(); K.render(t); return;
+    }
+  }
+}
 var SPEEDS = [['auto', 'Ikut pengaturan'], ['fast', 'Cepat'], ['mid', 'Sedang'], ['slow', 'Lambat']];
 
 /* ---------- daftar adegan ---------- */
@@ -2776,6 +3019,20 @@ function renderList() {
     });
     ld.appendChild(num); row.appendChild(ld);
     fields.appendChild(row);
+
+    var tx = el('div', 'txt');
+    var lt = el('label', 'f', 'Teks tulisan tangan (opsional)');
+    var ta = document.createElement('textarea');
+    ta.rows = 2; ta.maxLength = 300; ta.placeholder = 'Mis. Langkah 1: siapkan bahan'; ta.value = s.text || ''; ta.disabled = !!state.exporting;
+    ta.addEventListener('input', function () { s.text = ta.value; K.ensureFonts().then(function () { showScene(s); }); showScene(s); });
+    lt.appendChild(ta); tx.appendChild(lt);
+    var lp = el('label', 'f', 'Posisi teks');
+    var ps = document.createElement('select'); ps.disabled = !!state.exporting;
+    TPOS.forEach(function (a) { var o = document.createElement('option'); o.value = a[0]; o.textContent = a[1]; ps.appendChild(o); });
+    ps.value = s.textPos || 'bawah';
+    ps.addEventListener('change', function () { s.textPos = ps.value; showScene(s); });
+    lp.appendChild(ps); tx.appendChild(lp);
+    fields.appendChild(tx);
 
     var au = el('div', 'aud');
     var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'audio/*'; inp.hidden = true;
@@ -2908,6 +3165,15 @@ function speedText() {
 $('#setSpeed').addEventListener('input', function (e) { state.set.speed = parseInt(e.target.value, 10); $('#speedLbl').textContent = speedText(); K.render(K.getT()); });
 $('#speedLbl').textContent = speedText();
 $('#setDetail').addEventListener('input', function (e) { state.set.sketchDetail = parseInt(e.target.value, 10); $('#detailLbl').textContent = state.set.sketchDetail + '%'; K.prepEdges(); K.render(K.getT()); });
+$('#setFlow').addEventListener('change', function (e) { state.set.flow = e.target.value; K.render(K.getT()); });
+function fontPrev() {
+  var f = K.FONTS[state.set.textFont] || K.FONTS.kalam, p = $('#fontPrev');
+  p.style.fontFamily = f.fam; p.style.fontWeight = String(f.w); p.style.color = state.set.textColor;
+}
+$('#setTextFont').addEventListener('change', function (e) { state.set.textFont = e.target.value; fontPrev(); K.ensureFonts().then(function () { fontPrev(); K.render(K.getT()); }); K.render(K.getT()); });
+$('#setTextSize').addEventListener('change', function (e) { state.set.textSize = e.target.value; K.render(K.getT()); });
+$('#setTextColor').addEventListener('input', function (e) { state.set.textColor = e.target.value; fontPrev(); K.render(K.getT()); });
+fontPrev();
 $('#setTool').addEventListener('change', function (e) { state.set.tool = e.target.value; K.loadHand(); });
 $('#setSkin').addEventListener('change', function (e) { state.set.skin = e.target.value; K.loadHand(); });
 $('#allAnim').addEventListener('change', function (e) {
@@ -3223,7 +3489,7 @@ function setExporting(on) {
   $('#cancelBtn').hidden = !(on && offlineMode);
   $('#exportNote').textContent = offlineMode ? 'Biarkan tab ini tetap terbuka sampai selesai.' : 'Biarkan layar tetap menyala dan tab ini terbuka sampai selesai. Video direkam selama durasinya berjalan.';
   $('#exportBtn').textContent = on ? (offlineMode ? 'Merender…' : 'Merekam…') : 'Ekspor video';
-  ['setRes', 'setFps', 'setFit', 'setBg', 'setHand', 'setSpeed', 'setTool', 'setSkin', 'setDetail', 'allAnim', 'handBtn', 'handReset', 'handSize', 'trType', 'trDir', 'trSym', 'trColor', 'trSize', 'trDur', 'resetAll', 'bgmBtn'].forEach(function (id) { $('#' + id).disabled = on; });
+  ['setRes', 'setFps', 'setFit', 'setBg', 'setHand', 'setFlow', 'setTextFont', 'setTextSize', 'setTextColor', 'setSpeed', 'setTool', 'setSkin', 'setDetail', 'allAnim', 'handBtn', 'handReset', 'handSize', 'trType', 'trDir', 'trSym', 'trColor', 'trSize', 'trDur', 'resetAll', 'bgmBtn'].forEach(function (id) { $('#' + id).disabled = on; });
   K.syncPlayBtn(); K.renderList();
 }
 function requestWake() { try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(function (w) { wake = w; }).catch(function () {}); } catch (e) {} }
@@ -3285,6 +3551,11 @@ function exportRealtime(tot) {
 }
 function exportVideo() {
   if (state.exporting || !state.scenes.length) return;
+  $('#exportBtn').disabled = true;
+  K.ensureFonts().then(function () { refreshExportInfo(); exportNow(); });
+}
+function exportNow() {
+  if (state.exporting || !state.scenes.length) return;
   var canOff = !!(K.canOffline && K.canOffline());
   if (!canOff && !supported) return;
   K.stop(false);
@@ -3325,7 +3596,9 @@ $('#cancelBtn').addEventListener('click', function () { cancelled = true; $('#ca
 Promise.all(K.sampleSVGs.map(function (s, i) { return K.newScene(K.svgURI(s), 'contoh-' + (i + 1), true); })).then(function (list) {
   var kinds = ['sketch', 'hand', 'sketch'];
   list.filter(Boolean).forEach(function (s, i) { s.dur = 5; s.anim = kinds[i % 3]; state.scenes.push(s); });
+  if (state.scenes[0]) state.scenes[0].text = 'Tangan juga bisa menulis teks, dari kiri ke kanan.';
   K.loadHand();
+  K.ensureFonts();
   K.applyRes();
   K.renderList();
   K.syncPlayBtn();
