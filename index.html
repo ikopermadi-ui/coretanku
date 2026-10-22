@@ -12,21 +12,21 @@
 <style>
 /* Layout: studio dengan panggung pratinjau di kiri (menempel saat scroll di layar lebar), daftar adegan dan pengaturan di kanan; satu kolom di HP. */
 :root{
-  --bg:#EEF1EF; --surface:#FFFFFF; --surface-2:#E3E9E6; --ink:#142320; --ink-2:#4A5C57; --line:#C9D4CF;
-  --accent:#1D4ED8; --accent-ink:#FFFFFF; --good:#157A4B; --warn:#B45309; --danger:#B42318;
+  --bg:#B8B6E5; --frame:#E7E6F6; --surface:#FFFFFF; --surface-2:#F0EFFA; --ink:#1E1A3C; --ink-2:#5E5A80; --line:#DCDAEF;
+  --accent:#6B58EE; --accent-ink:#FFFFFF; --good:#0F8A6A; --warn:#B45F0A; --danger:#B42318; --bar-ink:#FFFFFF;
   --font-display:'Caveat Brush','Segoe Print','Comic Sans MS',cursive;
   --font-body:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;
   --font-mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#101614; --surface:#18211E; --surface-2:#222D29; --ink:#E7EFEC; --ink-2:#9DB0AA; --line:#2E3B37;
-    --accent:#8AA8FF; --accent-ink:#0B1220; --good:#5FD39B; --warn:#F0B35C; --danger:#FF8A7A; color-scheme:dark;
+    --bg:#12102A; --frame:#1B1838; --surface:#25214A; --surface-2:#2E2A58; --ink:#EDEBFF; --ink-2:#ADA9D6; --line:#3B3668;
+    --accent:#A394FF; --accent-ink:#15122E; --good:#5FD3B0; --warn:#F0B35C; --danger:#FF8A7A; --bar-ink:#15122E; color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#101614; --surface:#18211E; --surface-2:#222D29; --ink:#E7EFEC; --ink-2:#9DB0AA; --line:#2E3B37;
-  --accent:#8AA8FF; --accent-ink:#0B1220; --good:#5FD39B; --warn:#F0B35C; --danger:#FF8A7A; color-scheme:dark;
+  --bg:#12102A; --frame:#1B1838; --surface:#25214A; --surface-2:#2E2A58; --ink:#EDEBFF; --ink-2:#ADA9D6; --line:#3B3668;
+  --accent:#A394FF; --accent-ink:#15122E; --good:#5FD3B0; --warn:#F0B35C; --danger:#FF8A7A; --bar-ink:#15122E; color-scheme:dark;
 }
 *,*::before,*::after{box-sizing:border-box}
 body{
@@ -44,11 +44,6 @@ h2{font-size:15px;font-weight:700;letter-spacing:.01em}
 .tag{color:var(--ink-2);font-size:14px}
 .chip{font:500 12px/1 var(--font-mono);padding:7px 10px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink-2)}
 .layout{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;align-items:start}
-.stage-col,.side-col{display:flex;flex-direction:column;gap:14px;min-width:0}
-@media (min-width:920px){
-  .layout{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
-  .stage-col{position:sticky;top:16px}
-}
 .frame{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface-2)}
 #stage{display:block;width:100%;height:auto;aspect-ratio:16/9}
 .transport{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
@@ -114,19 +109,7 @@ input[type=color]{height:38px;width:56px;padding:2px;border:1px solid var(--line
 @media (prefers-reduced-motion:reduce){.bar{transition:none}}
 
 /* ---- tata letak studio baru ---- */
-.layout{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;align-items:start}
-.layout>section{min-width:0}
-.editor-col,.more-col{grid-column:1/-1}
-.more-col{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:14px;align-items:start}
-@media (min-width:920px){
-  .layout{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr)}
-  .stage-col{position:static}
-}
-:root{--bar-ink:#fff}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bar-ink:#0B1220}}
-:root[data-theme="dark"]{--bar-ink:#0B1220}
 #stage{touch-action:none;cursor:default}
-.side-col{display:flex;flex-direction:column;gap:14px}
 .actions.sp{justify-content:space-between;align-items:flex-end}
 /* daftar adegan */
 .slist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;max-height:380px;overflow:auto;overscroll-behavior:contain}
@@ -164,7 +147,7 @@ input[type=color]{height:38px;width:56px;padding:2px;border:1px solid var(--line
 .meter{flex:1 1 120px;min-width:80px;height:10px;border-radius:5px;background:var(--surface-2);overflow:hidden}
 .meter i{display:block;height:100%;width:0;background:var(--good);transition:width .06s linear}
 .ed-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:start}
-@media (min-width:900px){.ed-grid{grid-template-columns:minmax(0,1fr) 310px}}
+
 .tl-tools{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
 .tl-tools .hint{flex:1 1 200px}
 .tl{position:relative;border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
@@ -215,20 +198,13 @@ input[type=color]{height:38px;width:56px;padding:2px;border:1px solid var(--line
 .rowbtns .btn{flex:1 1 auto}
 .kbd{font:500 11px/1 var(--font-mono);padding:2px 5px;border:1px solid var(--line);border-radius:4px;color:var(--ink-2)}
 #edBody{display:flex;flex-direction:column;gap:14px}
-@media (max-width:919px){
-  .side-col{display:contents}
-  .stage-col{position:sticky;top:0;z-index:30;background:var(--bg);padding:8px 0 6px;box-shadow:0 8px 10px -9px rgba(0,0,0,.35)}
-  .stage-col .msg{min-height:0;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .stage-col{order:1} #scenesPanel{order:2} .editor-col{order:3} #exportPanel{order:4} .more-col{order:5}
-}
 @media (prefers-reduced-motion:reduce){.recdot{animation:none}.meter i{transition:none}}
 
 /* ---- v9: stiker video, klip video, dialog AI ---- */
-.editor-col{display:flex;flex-direction:column;gap:14px}
 .addwrap{display:flex;flex-direction:column;gap:8px}
 .addwrap .addrow{width:100%}
 .addrow.sec2{border-style:solid}
-#edBody.is-video #narr,#edBody.is-video .ed-grid{display:none !important}
+#edBody.is-video #narr{display:none !important}
 .vidctl[hidden]{display:none}
 .vidctl .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
 .stk-marks{height:20px;position:relative;border-bottom:1px solid var(--line);background:var(--surface);cursor:pointer;touch-action:none}
@@ -250,6 +226,78 @@ input[type=color]{height:38px;width:56px;padding:2px;border:1px solid var(--line
 .keyrow{display:flex;gap:8px}
 .keyrow input{flex:1;min-width:0}
 body.modal-open{overflow:hidden}
+
+/* ---- v10: tata letak ala editor video ---- */
+body{padding-block:14px 28px}
+.app{max-width:1560px;background:var(--frame);border-radius:24px;padding:14px;gap:12px;box-shadow:0 24px 60px -30px rgba(50,40,130,.55)}
+.top{align-items:center}
+.top-r{display:flex;gap:10px;align-items:center}
+.logo{font-size:34px}
+.panel{border-radius:16px;border-color:transparent;box-shadow:0 1px 2px rgba(50,40,120,.06)}
+.btn{border-radius:10px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;align-items:start}
+.layout>*{min-width:0}
+.stage-col{display:flex;flex-direction:column;gap:10px}
+.left-col,.right-col{display:flex;flex-direction:column;gap:10px;min-width:0}
+.tabpane{display:flex;flex-direction:column;gap:12px;min-width:0}
+.more-col{display:flex;flex-direction:column;gap:12px}
+.frame{border:0;border-radius:16px;background:#fff;box-shadow:0 14px 34px -16px rgba(50,40,130,.55)}
+#stage{touch-action:none;cursor:default}
+.transport{background:var(--surface);border-radius:999px;padding:6px 14px 6px 6px;gap:12px;flex-wrap:nowrap;box-shadow:0 1px 2px rgba(50,40,120,.08)}
+#playBtn{border-radius:999px;min-height:40px;padding:0 20px}
+.toolpill{display:none;align-self:center;gap:2px;background:var(--surface);border-radius:999px;padding:4px 6px;box-shadow:0 1px 2px rgba(50,40,120,.1);flex-wrap:wrap;justify-content:center}
+.toolpill button{display:flex;align-items:center;gap:6px;border:0;background:transparent;color:var(--ink);font:600 13px/1 var(--font-body);padding:9px 12px;border-radius:999px;cursor:pointer;min-height:36px}
+.toolpill button i{font-style:normal;color:var(--accent);font-weight:700}
+.toolpill button:hover{background:var(--surface-2)}
+.toolpill button:disabled{opacity:.45;cursor:not-allowed}
+.seg{display:inline-flex;background:var(--surface-2);border-radius:999px;padding:3px;gap:2px;align-self:flex-start}
+.seg button{border:0;background:transparent;color:var(--ink-2);font:600 13px/1 var(--font-body);padding:9px 14px;border-radius:999px;cursor:pointer;min-height:34px;white-space:nowrap}
+.seg button[aria-selected="true"]{background:var(--surface);color:var(--accent);box-shadow:0 1px 3px rgba(40,30,100,.2)}
+.seg .cnt{font:500 11px/1 var(--font-mono);opacity:.75}
+.seg .cnt:empty{display:none}
+.right-col>.seg{align-self:stretch;display:grid;grid-template-columns:repeat(3,1fr)}
+.right-col>.seg button{padding:9px 6px}
+.dock-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.dock-tip:empty{display:none}
+.dock-body{display:flex;flex-direction:column;gap:10px;min-width:0}
+#editor,#itemCard{padding:12px}
+#itemCard .insp{border:0;background:transparent;padding:0}
+.insp{border-radius:12px}
+.narr{border-radius:12px}
+.slist{max-height:none;overflow:visible}
+.srow{border-radius:12px;flex:none;background:var(--surface-2)}
+.srow.sel{background:var(--surface)}
+.scene,.narr,.insp,.aikey{background:var(--surface-2)}
+.modal-card textarea{background:var(--surface-2)}
+.hdr-hide{display:none}
+
+/* HP & tablet: satu kolom. Pratinjau menempel di atas, panel kanan dibuka berurutan. */
+@media (max-width:1099px){
+  body{padding-inline:max(8px,env(safe-area-inset-left,0px));padding-block:8px 24px}
+  .app{padding:10px;border-radius:18px}
+  .right-col{display:contents}
+  .right-col>.seg{display:none}
+  .tabpane{display:contents}
+  .stage-col{position:sticky;top:0;z-index:30;background:var(--frame);padding:6px 0;box-shadow:0 8px 10px -9px rgba(40,30,100,.45);order:1;gap:6px}
+  .stage-col .frame{width:100%;max-width:520px;margin-inline:auto}
+  .stage-col .transport{max-width:520px;margin-inline:auto;width:100%}
+  .stage-col .msg{min-height:0;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .left-col{order:2} #editor{order:3} #dock{order:4} #itemCard{order:5} #exportPanel{order:6} .more-col{order:7}
+}
+@media (min-width:1100px){
+  .layout{grid-template-columns:280px minmax(0,1fr) 340px;grid-template-areas:"left stage right" "dock dock dock";grid-template-rows:auto auto;gap:12px}
+  .left-col{grid-area:left}.stage-col{grid-area:stage}.right-col{grid-area:right}.dock{grid-area:dock}
+  .left-col,.right-col{contain:size;align-self:stretch;min-height:0}
+  .left-col #scenesPanel{flex:1;min-height:0;overflow:auto}
+  .right-col .tabpane{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding-right:2px}
+  .tabpane.off{display:none}
+  .left-col .srow{grid-template-columns:auto 64px minmax(0,1fr) auto;gap:6px;padding:6px}
+  .left-col .srow .thumb{width:64px}
+  .left-col .sinfo b{font-size:13px}
+  .left-col .grip{padding:8px 2px}
+  .toolpill{display:flex}
+  .dock{max-height:46vh;overflow:auto;overscroll-behavior:contain}
+}
 </style>
 
 </head>
@@ -260,11 +308,18 @@ body.modal-open{overflow:hidden}
       <h1 class="logo">Coretan</h1>
       <p class="tag">Ubah gambar dan narasi jadi video yang seolah digambar tangan</p>
     </div>
-    <span class="chip" id="modeChip">memuat…</span>
+    <div class="top-r"><span class="chip" id="modeChip">memuat…</span><button class="btn primary small" id="hdrExport" type="button">Ekspor video</button></div>
   </header>
 
-  <div class="layout">
+  <div class="layout" id="layout">
     <section class="stage-col" aria-label="Pratinjau">
+      <div class="toolpill" id="toolPill" role="toolbar" aria-label="Tambah cepat">
+        <button type="button" id="tbImg"><i aria-hidden="true">＋</i>Gambar</button>
+        <button type="button" id="tbVid"><i aria-hidden="true">▶</i>Klip video</button>
+        <button type="button" id="tbText"><i aria-hidden="true">T</i>Teks</button>
+        <button type="button" id="tbStk"><i aria-hidden="true">◇</i>Stiker</button>
+        <button type="button" id="tbAI"><i aria-hidden="true">✨</i>AI</button>
+      </div>
       <div class="frame"><canvas id="stage" width="1280" height="720" aria-label="Pratinjau video. Seret elemen untuk menggeser, seret pojok kanan bawah untuk mengubah ukuran."></canvas></div>
       <div class="transport">
         <button class="btn primary" id="playBtn" type="button">Putar</button>
@@ -274,7 +329,7 @@ body.modal-open{overflow:hidden}
       <p class="msg" id="msg" role="status"></p>
     </section>
 
-    <section class="side-col" aria-label="Daftar adegan dan ekspor">
+    <aside class="left-col" aria-label="Daftar adegan">
       <div class="panel" id="scenesPanel">
         <div class="panel-head"><h2>Adegan</h2><span class="mono" id="sceneCount"></span></div>
         <input id="imgInput" type="file" accept="image/*" multiple hidden>
@@ -294,27 +349,18 @@ body.modal-open{overflow:hidden}
           <button class="btn small danger" id="resetAll" type="button" disabled>Reset semua adegan</button>
         </div>
       </div>
-      <div class="panel" id="exportPanel">
-        <h2>Ekspor video</h2>
-        <p class="hint" id="exportInfo"></p>
-        <button class="btn primary wide" id="exportBtn" type="button">Ekspor video</button>
-        <button class="btn wide" id="cancelBtn" type="button" hidden>Batal</button>
-        <div class="progress" id="prog" hidden><div class="bar" id="bar"></div></div>
-        <p class="hint" id="exportNote" hidden>Biarkan layar tetap menyala dan tab ini terbuka sampai selesai. Video direkam selama durasinya berjalan.</p>
-        <div id="result" hidden>
-          <video id="resVideo" controls playsinline></video>
-          <div class="res-meta">
-            <span class="mono" id="resMeta"></span>
-            <button class="btn" id="saveBtn" type="button">Simpan ke perangkat</button>
-          </div>
-        </div>
-      </div>
-    </section>
+    </aside>
 
-    <section class="editor-col" aria-label="Editor adegan">
-      <div class="panel editor" id="editor">
-        <p class="insp-empty" id="edEmpty">Tambahkan adegan di daftar, lalu atur narasi dan elemen gambarnya di sini.</p>
-        <div id="edBody" hidden>
+    <aside class="right-col" aria-label="Properti dan pengaturan">
+      <div class="seg" id="rightTabs" role="tablist" aria-label="Panel kanan">
+        <button type="button" role="tab" id="tabProps" data-pane="props" aria-selected="true">Properti</button>
+        <button type="button" role="tab" id="tabSet" data-pane="set" aria-selected="false">Pengaturan</button>
+        <button type="button" role="tab" id="tabExp" data-pane="exp" aria-selected="false">Ekspor</button>
+      </div>
+      <div class="tabpane" id="paneProps">
+        <div class="panel editor" id="editor">
+          <p class="insp-empty" id="edEmpty">Tambahkan adegan di daftar kiri, lalu atur narasi dan elemen gambarnya di sini.</p>
+          <div id="edBody" hidden>
           <div class="ed-head">
             <h2 id="edTitle">Adegan 1</h2>
             <div class="ed-acts">
@@ -324,12 +370,11 @@ body.modal-open{overflow:hidden}
                 <input id="edDur" type="number" min="1" max="600" step="0.5" aria-label="Durasi adegan dalam detik">
                 <button class="btn" id="durPlus" type="button" aria-label="Tambah durasi">+</button> dtk
               </span>
-              <button class="btn small" id="edInsert" type="button">Sisipkan adegan setelah ini</button>
-              <button class="btn small" id="edInsertVid" type="button">Sisipkan klip video setelah ini</button>
+              <button class="btn small" id="edInsert" type="button">＋ Adegan setelah ini</button>
+              <button class="btn small" id="edInsertVid" type="button">＋ Klip video setelah ini</button>
               <button class="btn small danger" id="edDel" type="button">Hapus adegan</button>
             </div>
           </div>
-
           <div class="narr vidctl" id="vidCtl" hidden>
             <span class="narr-label">Klip video</span>
             <span class="aud-name" id="vidInfo"></span>
@@ -351,7 +396,6 @@ body.modal-open{overflow:hidden}
             <p class="hint" id="vidAudioHint"></p>
             <p class="hint">Panjang tayang diatur di kolom Durasi di atas. Klip diputar dari detik “Mulai” sepanjang durasi itu.</p>
           </div>
-
           <div class="narr" id="narr">
             <span class="narr-label">Narasi adegan ini</span>
             <div class="narr-row" id="narrIdle">
@@ -374,50 +418,16 @@ body.modal-open{overflow:hidden}
             </div>
             <p class="hint" id="narrHint" hidden></p>
           </div>
-
-          <div class="ed-grid">
-            <div>
-              <div class="tl-tools">
-                <button class="btn small" id="zoomOut" type="button" aria-label="Perkecil timeline">−</button>
-                <button class="btn small" id="zoomFit" type="button">Pas</button>
-                <button class="btn small" id="zoomIn" type="button" aria-label="Perbesar timeline">+</button>
-                <span class="mono" id="headLbl"></span>
-                <span class="hint">Klik penggaris untuk memindah posisi. Seret bar untuk mengatur kapan elemen muncul dan hilang.</span>
-              </div>
-              <div class="tl" id="tl"><div class="tl-scroll" id="tlScroll"><div class="tl-inner" id="tlInner"></div></div></div>
-              <div class="add-row">
-                <button class="btn" id="addDraw" type="button">＋ Gambar digambar tangan</button>
-                <button class="btn" id="edAI" type="button">✨ Buat gambar dengan AI</button>
-                <button class="btn" id="addText" type="button">＋ Teks</button>
-                <input id="itemInput" type="file" accept="image/*" multiple hidden>
-              </div>
-            </div>
-            <div class="insp" id="insp"></div>
           </div>
         </div>
-      </div>
-    
-      <div class="panel" id="stickPanel">
-        <div class="panel-head"><h2>Stiker video</h2><span class="mono" id="stkCount"></span></div>
-        <p class="hint">Stiker menempel di seluruh video, bukan di satu adegan. Stiker tetap tampil saat adegan berganti, dan berganti sendiri dengan efek silang. Kotak abu di jalur ini menandai tiap adegan.</p>
-        <div class="tl-tools">
-          <button class="btn small" id="stkZoomOut" type="button" aria-label="Perkecil jalur stiker">−</button>
-          <button class="btn small" id="stkZoomFit" type="button">Pas</button>
-          <button class="btn small" id="stkZoomIn" type="button" aria-label="Perbesar jalur stiker">+</button>
-          <span class="hint">Klik penggaris untuk memindah posisi. Seret bar untuk mengatur kapan stiker tampil.</span>
+        <div class="panel" id="itemCard">
+          <div class="insp" id="insp"></div>
+          <div class="insp" id="stkInsp" hidden></div>
         </div>
-        <div class="tl"><div class="tl-scroll" id="stkScroll"><div class="tl-inner" id="stkInner"></div></div></div>
-        <div class="add-row">
-          <button class="btn" id="stkAdd" type="button">＋ Unggah stiker</button>
-          <button class="btn" id="stkAI" type="button">✨ Buat stiker dengan AI</button>
-          <input id="stkInput" type="file" accept="image/*" multiple hidden>
-        </div>
-        <div class="insp" id="stkInsp"></div>
       </div>
-    </section>
-
-    <section class="more-col" aria-label="Pengaturan">
-      <div class="panel">
+      <div class="tabpane off" id="paneSet">
+        <div class="more-col">
+          <div class="panel">
         <h2>Pengaturan</h2>
         <div class="grid2">
           <label class="f">Resolusi
@@ -528,10 +538,72 @@ body.modal-open{overflow:hidden}
           <input id="setBgm" type="range" min="0" max="100" step="5" value="25">
         </label>
       </div>
+        </div>
+      </div>
+      <div class="tabpane off" id="paneExp">
+        <div class="panel" id="exportPanel">
+        <h2>Ekspor video</h2>
+        <p class="hint" id="exportInfo"></p>
+        <button class="btn primary wide" id="exportBtn" type="button">Ekspor video</button>
+        <button class="btn wide" id="cancelBtn" type="button" hidden>Batal</button>
+        <div class="progress" id="prog" hidden><div class="bar" id="bar"></div></div>
+        <p class="hint" id="exportNote" hidden>Biarkan layar tetap menyala dan tab ini terbuka sampai selesai. Video direkam selama durasinya berjalan.</p>
+        <div id="result" hidden>
+          <video id="resVideo" controls playsinline></video>
+          <div class="res-meta">
+            <span class="mono" id="resMeta"></span>
+            <button class="btn" id="saveBtn" type="button">Simpan ke perangkat</button>
+          </div>
+        </div>
+      </div>
+      </div>
+    </aside>
+
+    <section class="dock panel" id="dock" aria-label="Timeline">
+      <div class="dock-head">
+        <div class="seg" id="dockTabs" role="tablist" aria-label="Jalur timeline">
+          <button type="button" role="tab" id="dtScene" data-dock="scene" aria-selected="true">Adegan ini</button>
+          <button type="button" role="tab" id="dtStk" data-dock="stk" aria-selected="false">Stiker video <span class="cnt" id="stkCount"></span></button>
+        </div>
+        <span class="hint dock-tip" id="dockTip"></span>
+      </div>
+      <div class="dock-body" id="dockScene">
+        <p class="insp-empty" id="dockSceneEmpty" hidden></p>
+        <div id="dockSceneBody">
+        <div class="tl-tools">
+                <button class="btn small" id="zoomOut" type="button" aria-label="Perkecil timeline">−</button>
+                <button class="btn small" id="zoomFit" type="button">Pas</button>
+                <button class="btn small" id="zoomIn" type="button" aria-label="Perbesar timeline">+</button>
+                <span class="mono" id="headLbl"></span>
+                <span class="hint">Klik penggaris untuk memindah posisi. Seret bar untuk mengatur kapan elemen muncul dan hilang.</span>
+              </div>
+              <div class="tl" id="tl"><div class="tl-scroll" id="tlScroll"><div class="tl-inner" id="tlInner"></div></div></div>
+              <div class="add-row">
+                <button class="btn" id="addDraw" type="button">＋ Gambar digambar tangan</button>
+                <button class="btn" id="edAI" type="button">✨ Buat gambar dengan AI</button>
+                <button class="btn" id="addText" type="button">＋ Teks</button>
+                <input id="itemInput" type="file" accept="image/*" multiple hidden>
+              </div>
+        </div>
+      </div>
+      <div class="dock-body" id="dockStk" hidden>
+        <p class="hint">Stiker menempel di seluruh video, bukan di satu adegan: tetap tampil saat adegan berganti, dan berganti sendiri dengan efek silang. Kotak abu menandai tiap adegan.</p>
+        <div class="tl-tools">
+          <button class="btn small" id="stkZoomOut" type="button" aria-label="Perkecil jalur stiker">−</button>
+          <button class="btn small" id="stkZoomFit" type="button">Pas</button>
+          <button class="btn small" id="stkZoomIn" type="button" aria-label="Perbesar jalur stiker">+</button>
+          <span class="hint">Klik penggaris untuk memindah posisi. Seret bar untuk mengatur kapan stiker tampil.</span>
+        </div>
+        <div class="tl"><div class="tl-scroll" id="stkScroll"><div class="tl-inner" id="stkInner"></div></div></div>
+        <div class="add-row">
+          <button class="btn" id="stkAdd" type="button">＋ Unggah stiker</button>
+          <button class="btn" id="stkAI" type="button">✨ Buat stiker dengan AI</button>
+          <input id="stkInput" type="file" accept="image/*" multiple hidden>
+        </div>
+      </div>
     </section>
   </div>
-
-  <div class="modal" id="aiModal" role="dialog" aria-modal="true" aria-labelledby="aiTitle" hidden>
+<div class="modal" id="aiModal" role="dialog" aria-modal="true" aria-labelledby="aiTitle" hidden>
     <div class="modal-card">
       <div class="panel-head"><h2 id="aiTitle">Buat gambar dengan AI (Gemini)</h2><button class="btn icon" id="aiClose" type="button" aria-label="Tutup">×</button></div>
       <div class="grid2">
@@ -562,7 +634,7 @@ body.modal-open{overflow:hidden}
           <input id="aiModel" list="aiModels" autocomplete="off" spellcheck="false" value="gemini-2.5-flash-image"><datalist id="aiModels"><option value="gemini-2.5-flash-image"></option></datalist>
         </label>
         <div class="actions"><button class="btn small" id="aiCheck" type="button">Cek kunci &amp; model</button><button class="btn small danger" id="aiForget" type="button">Hapus kunci dari browser ini</button></div>
-        <p class="hint">Pembuatan gambar dihitung per gambar oleh Google (cek harga terbaru di Google AI Studio). Kunci terlihat di browser, jadi batasi kunci ke alamat situsmu di pengaturan Google Cloud dan jangan pakai di komputer umum.</p>
+        <p class="hint">Kuota API terpisah dari kuota aplikasi Gemini, dan tiap model gambar punya kuota sendiri. Kalau satu model habis, ganti model di kolom di atas. Pembuatan gambar dihitung per gambar oleh Google (cek harga dan kuota terbaru di Google AI Studio). Kunci terlihat di browser, jadi batasi kunci ke alamat situsmu di pengaturan Google Cloud dan jangan pakai di komputer umum.</p>
       </details>
     </div>
   </div>
@@ -3751,7 +3823,7 @@ K.renderScenes = function () {
     var del = el('button', 'btn icon sdel', '×'); del.type = 'button'; del.setAttribute('aria-label', 'Hapus adegan ' + (i + 1)); del.disabled = !!state.exporting;
     armDelete(del, 'Hapus?', function () { deleteScene(s); });
     li.appendChild(del);
-    li.addEventListener('click', function () { if (!state.exporting) { K.selectScene(s.id); K.focusEditor(); } });
+    li.addEventListener('click', function () { if (!state.exporting) { K.selectScene(s.id); if (K.showDock && !$('#dockStk').hidden) K.showDock('scene'); K.focusEditor(); } });
     li.addEventListener('keydown', function (e) {
       if (e.target !== li) return;
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); K.selectScene(s.id); }
@@ -3833,7 +3905,7 @@ resetBtn.addEventListener('click', function () {
 'use strict';
 var K = window.__coretan, $ = K.$, state = K.state, ui = K.ui, el = K.el, r1 = K.r1, clamp = K.clamp, cv = K.cv, cx = K.cx;
 var ASPECT = 16 / 9;
-var bodyEl = $('#edBody'), emptyEl = $('#edEmpty'), tlScroll = $('#tlScroll'), inner = $('#tlInner'), insp = $('#insp');
+var bodyEl = $('#edBody'), emptyEl = $('#edEmpty'), dSceneBody = $('#dockSceneBody'), dSceneEmpty = $('#dockSceneEmpty'), tlScroll = $('#tlScroll'), inner = $('#tlInner'), insp = $('#insp');
 var pps = 60, head = null, refs = {};
 
 var ANIMS_DRAW = [['sketch', 'Sketsa: garis dulu, lalu warna'], ['hand', 'Tangan menggambar langsung']];
@@ -4172,11 +4244,12 @@ $('#zoomIn').addEventListener('click', function () { zoomTo(ui.zoom * 1.6); });
 $('#zoomOut').addEventListener('click', function () { zoomTo(ui.zoom / 1.6); });
 $('#zoomFit').addEventListener('click', function () { zoomTo(1); });
 var rzT = 0;
-window.addEventListener('resize', function () { clearTimeout(rzT); rzT = setTimeout(function () { if (K.selScene() && !bodyEl.hidden) renderTimeline(); }, 150); });
+window.addEventListener('resize', function () { clearTimeout(rzT); rzT = setTimeout(function () { if (K.selScene() && !K.selScene().video && !dSceneBody.hidden) renderTimeline(); }, 150); });
 
 /* =================== pilih elemen =================== */
 K.selectItem = function (id) {
   ui.itemId = id;
+  if (id != null && K.showDock && !$('#dockStk').hidden) { ui.stickerId = null; K.showDock('scene'); }
   if (id != null && ui.stickerId != null) { ui.stickerId = null; if (K.renderStickers) K.renderStickers(); }
   inner.querySelectorAll('.tl-bar').forEach(function (b) { b.classList.toggle('sel', id != null && String(id) === b.dataset.id); });
   renderInspector();
@@ -4491,6 +4564,10 @@ K.onTime = function (t) {
 K.renderEditor = function () {
   var s = K.selScene();
   emptyEl.hidden = !!s; bodyEl.hidden = !s;
+  dSceneBody.hidden = !s || !!s.video; dSceneEmpty.hidden = !!s && !s.video;
+  dSceneEmpty.textContent = !s ? 'Belum ada adegan. Tambahkan gambar di panel kiri.' : '';
+  if (s && s.video) dSceneEmpty.textContent = 'Klip video tampil utuh selama durasinya. Atur mulai, lama, dan suara di kartu Adegan sebelah kanan.';
+  if (K.syncProps) K.syncProps();
   if (!s) { stopListen(); return; }
   $('#edTitle').textContent = (s.video ? 'Klip video ' : 'Adegan ') + (state.scenes.indexOf(s) + 1);
   $('#edDur').value = String(r1(s.dur));
@@ -4503,7 +4580,8 @@ K.renderEditor = function () {
   K.onPlayState();
 };
 K.focusEditor = function () {
-  var ed = $('#editor'), narrow = window.innerWidth < 920, sc = document.querySelector('.stage-col');
+  var ed = $('#editor'), narrow = window.innerWidth < 1100, sc = document.querySelector('.stage-col');
+  if (!narrow) { if (K.showPane) K.showPane('props'); return; }
   ed.style.scrollMarginTop = (narrow && sc ? sc.offsetHeight + 8 : 12) + 'px';
   if (ed.getBoundingClientRect().top > window.innerHeight * 0.55) { try { ed.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {} }
 };
@@ -4849,6 +4927,7 @@ window.addEventListener('resize', function () { clearTimeout(rzT); rzT = setTime
 K.selectSticker = function (id, keepScroll) {
   ui.stickerId = id;
   if (id != null && ui.itemId != null) K.selectItem(null);
+  if (id != null && K.showDock && $('#dockStk').hidden) K.showDock('stk');
   strip.querySelectorAll('.tl-bar').forEach(function (b) { b.classList.toggle('sel', id != null && b.dataset.id === id); });
   renderInsp();
   K.render(K.getT());
@@ -4966,7 +5045,7 @@ function move(st, d) {
   var i = state.stickers.indexOf(st), j = i + d; if (j < 0 || j >= state.stickers.length) return;
   state.stickers.splice(i, 1); state.stickers.splice(j, 0, st); K.renderStickers(); K.render(K.getT());
 }
-K.renderStickers = function () { K.renderStickerStrip(); renderInsp(); K.updateStickerCount(); };
+K.renderStickers = function () { K.renderStickerStrip(); renderInsp(); K.updateStickerCount(); if (K.syncProps) K.syncProps(); };
 K.updateStickerCount = function () { var n = state.stickers.length; $('#stkCount').textContent = n ? n + ' stiker' : ''; };
 
 $('#stkAdd').addEventListener('click', function () { if (!state.exporting) $('#stkInput').click(); });
@@ -5173,7 +5252,7 @@ function apiError(status, msg) {
   if (status === 400 && /API key/i.test(msg)) return 'Kunci API tidak valid. Periksa kunci dari Google AI Studio.';
   if (status === 401 || status === 403) return 'Kunci API ditolak (' + status + '). Pastikan kunci aktif dan tagihan/kuota untuk model gambar sudah diaktifkan di Google AI Studio.' + (msg ? ' Pesan: ' + msg.slice(0, 160) : '');
   if (status === 404) return 'Model "' + model() + '" tidak ditemukan untuk kunci ini. Tekan Cek model untuk melihat yang tersedia.';
-  if (status === 429) return 'Kuota atau batas permintaan Gemini habis. Tunggu sebentar atau cek kuota di Google AI Studio.';
+  if (status === 429) return 'Kuota model "' + model() + '" untuk kunci ini habis (kuota API terpisah dari kuota aplikasi Gemini). Tekan Cek kunci & model, lalu coba model gambar lain yang lebih ringan (misalnya yang bernama flash-lite-image), atau tunggu kuota harian reset.';
   if (status >= 500) return 'Server Gemini sedang bermasalah (' + status + '). Coba lagi sebentar lagi.';
   return 'Gemini menolak permintaan (' + status + ').' + (msg ? ' ' + msg.slice(0, 220) : '');
 }
@@ -5236,7 +5315,7 @@ $('#aiCheck').addEventListener('click', async function () {
     names.forEach(function (n) { var o = document.createElement('option'); o.value = n; dl.appendChild(o); });
     if (names.length) {
       if (names.indexOf(model()) < 0) $('#aiModel').value = names.indexOf(DEFAULT_MODEL) >= 0 ? DEFAULT_MODEL : names[0];
-      say('Kunci valid. Model gambar tersedia: ' + names.join(', ') + '.', 'ok');
+      say('Kunci valid. Model gambar tersedia: ' + names.join(', ') + '. Ketik atau pilih salah satu di kolom Model gambar; model berlabel "lite" biasanya paling hemat kuota.', 'ok');
     } else say('Kunci valid, tetapi tidak ada model gambar yang terdaftar untuk akun ini.', 'err');
   } catch (e) { say(e.message, 'err'); }
   setBusy(false);
@@ -5359,6 +5438,69 @@ $('#aiForget').addEventListener('click', function () { $('#aiKey').value = ''; $
   var b = $('#' + id); if (!b) return;
   b.addEventListener('click', function () { open(id === 'aiScene' ? 'scene' : id === 'edAI' ? 'item' : 'sticker'); });
 });
+})();
+
+(function () {
+'use strict';
+/* Tata letak ala editor video: tab panel kanan, tab timeline bawah, tombol cepat di atas pratinjau. */
+var K = window.__coretan, $ = K.$, state = K.state, ui = K.ui;
+var DESK = window.matchMedia('(min-width:1100px)');
+K.isDesk = function () { return DESK.matches; };
+
+/* ---- tab panel kanan ---- */
+var PANES = { props: 'paneProps', set: 'paneSet', exp: 'paneExp' }, TABS = { props: 'tabProps', set: 'tabSet', exp: 'tabExp' };
+K.showPane = function (name) {
+  Object.keys(PANES).forEach(function (k) {
+    $('#' + PANES[k]).classList.toggle('off', k !== name);
+    $('#' + TABS[k]).setAttribute('aria-selected', k === name ? 'true' : 'false');
+  });
+};
+Object.keys(TABS).forEach(function (k) { $('#' + TABS[k]).addEventListener('click', function () { K.showPane(k); }); });
+
+/* ---- tab timeline bawah ---- */
+K.showDock = function (name) {
+  var stk = name === 'stk';
+  $('#dockScene').hidden = stk; $('#dockStk').hidden = !stk;
+  $('#dtScene').setAttribute('aria-selected', stk ? 'false' : 'true');
+  $('#dtStk').setAttribute('aria-selected', stk ? 'true' : 'false');
+  $('#dockTip').textContent = '';
+  if (!stk && ui.stickerId != null) { ui.stickerId = null; if (K.renderStickers) K.renderStickers(); if (K.render) K.render(K.getT()); }
+  if (stk) { if (K.renderStickerStrip) K.renderStickerStrip(); }
+  else { window.dispatchEvent(new Event('resize')); }
+  K.syncProps();
+};
+$('#dtScene').addEventListener('click', function () { K.showDock('scene'); });
+$('#dtStk').addEventListener('click', function () { K.showDock('stk'); });
+
+/* ---- isi kartu "Pengaturan elemen" ---- */
+K.syncProps = function () {
+  if (ui.stickerId != null && $('#dockStk').hidden) { K.showDock('stk'); return; }
+  var stkMode = ui.stickerId != null || !$('#dockStk').hidden;
+  var s = K.selScene();
+  $('#insp').hidden = stkMode;
+  $('#stkInsp').hidden = !stkMode;
+  $('#itemCard').hidden = !stkMode && !!(s && s.video);
+  $('#editor').hidden = stkMode && K.isDesk();
+};
+
+/* ---- tombol cepat ---- */
+function guard(fn) { return function () { if (state.exporting) return; fn(); }; }
+$('#tbImg').addEventListener('click', guard(function () { K.showDock('scene'); if (K.selScene() && !K.selScene().video) $('#addDraw').click(); else K.openScenePicker(K.selScene() ? K.selScene().id : null); }));
+$('#tbVid').addEventListener('click', guard(function () { var s = K.selScene(); K.openVideoPicker(s ? s.id : null); }));
+$('#tbText').addEventListener('click', guard(function () { var s = K.selScene(); if (!s || s.video) { K.setMsg('Pilih adegan gambar dulu untuk menambah teks.', 'err'); return; } K.showDock('scene'); $('#addText').click(); }));
+$('#tbStk').addEventListener('click', guard(function () { K.showDock('stk'); $('#stkAdd').click(); }));
+$('#tbAI').addEventListener('click', guard(function () { K.openAI('scene'); }));
+$('#hdrExport').addEventListener('click', function () {
+  K.showPane('exp');
+  var p = $('#exportPanel'); if (!K.isDesk()) { try { p.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {} }
+});
+
+K.syncToolPill = function () {
+  var on = !!state.exporting;
+  ['tbImg', 'tbVid', 'tbText', 'tbStk', 'tbAI'].forEach(function (id) { $('#' + id).disabled = on; });
+};
+if (DESK.addEventListener) DESK.addEventListener('change', function () { K.syncProps(); });
+K.showPane('props'); K.showDock('scene');
 })();
 
 (function () {
@@ -5625,6 +5767,8 @@ function setExporting(on) {
   $('#exportNote').textContent = offlineMode ? 'Biarkan tab ini tetap terbuka sampai selesai.' : 'Biarkan layar tetap menyala dan tab ini terbuka sampai selesai. Video direkam selama durasinya berjalan.';
   $('#exportBtn').textContent = on ? (offlineMode ? 'Merender…' : 'Merekam…') : 'Ekspor video';
   ['setRes', 'setFps', 'setBg', 'setHand', 'setFlow', 'setTextFont', 'setTextColor', 'setSpeed', 'setTool', 'setSkin', 'setDetail', 'allAnim', 'handBtn', 'handReset', 'handSize', 'trType', 'trDir', 'trSym', 'trColor', 'trSize', 'trDur', 'resetAll', 'bgmBtn'].forEach(function (id) { var n = $('#' + id); if (n) n.disabled = on; });
+  if (on && K.showPane) K.showPane('exp');
+  if (K.syncToolPill) K.syncToolPill();
   K.syncPlayBtn(); K.refreshUI();
 }
 function requestWake() { try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(function (w) { wake = w; }).catch(function () {}); } catch (e) {} }
