@@ -260,8 +260,8 @@ body{padding-block:14px 28px}
 .seg button[aria-selected="true"]{background:var(--surface);color:var(--accent);box-shadow:0 1px 3px rgba(30,70,140,.22)}
 .seg .cnt{font:500 11px/1 var(--font-mono);opacity:.75}
 .seg .cnt:empty{display:none}
-.right-col>.seg{align-self:stretch;display:grid;grid-template-columns:repeat(3,1fr)}
-.right-col>.seg button{padding:9px 6px}
+.right-col>.seg{align-self:stretch;display:grid;grid-template-columns:repeat(4,1fr)}
+.right-col>.seg button{padding:9px 4px;font-size:12.5px}
 .dock-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .dock-tip:empty{display:none}
 .dock-body{display:flex;flex-direction:column;gap:10px;min-width:0}
@@ -287,7 +287,7 @@ body{padding-block:14px 28px}
   .stage-col .frame{width:100%;max-width:520px;margin-inline:auto}
   .stage-col .transport{max-width:520px;margin-inline:auto;width:100%}
   .stage-col .msg{min-height:0;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .left-col{order:2} #editor{order:3} #dock{order:4} #itemCard{order:5} #exportPanel{order:6} .more-col{order:7}
+  .left-col{order:2} #editor{order:3} #dock{order:4} #itemCard{order:5} #audCol{order:5} #exportPanel{order:6} .more-col{order:7}
 }
 @media (min-width:1100px){
   .layout{grid-template-columns:280px minmax(0,1fr) 340px;grid-template-areas:"left stage right" "dock dock dock";grid-template-rows:auto auto;gap:12px}
@@ -364,6 +364,35 @@ body{padding-block:14px 28px}
   .transport{padding:3px 12px 3px 4px}
   #playBtn{min-height:34px}
 }
+
+/* ---- v14: potongan klip ---- */
+#dockSceneBody.is-vid #addRowImg{display:none !important}
+#dockSceneBody:not(.is-vid) #vidTools{display:none !important}
+.tl-row.vrow{height:54px}
+.vseg{position:absolute;top:4px;height:46px;border-radius:8px;overflow:hidden;background:#111;cursor:grab;touch-action:none;box-shadow:0 0 0 1px var(--line)}
+.vseg.sel{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--accent)}
+.vseg .vt{position:absolute;inset:0;pointer-events:none}
+.vseg .vt img{position:absolute;top:0;height:100%;object-fit:cover;opacity:.92;-webkit-user-drag:none;user-select:none}
+.vseg .vl{position:absolute;left:14px;bottom:3px;font:600 10px/1 var(--font-mono);color:#fff;background:rgba(0,0,0,.55);padding:2px 5px;border-radius:4px;pointer-events:none;white-space:nowrap;max-width:calc(100% - 28px);overflow:hidden}
+.vseg .h{position:absolute;top:0;bottom:0;width:14px;cursor:ew-resize;touch-action:none;background:rgba(0,0,0,.28)}
+.vseg.sel .h{background:var(--accent)}
+.vseg .h.l{left:0}.vseg .h.r{right:0}
+.vseg .h::after{content:"";position:absolute;top:14px;bottom:14px;left:6px;width:2px;background:#fff;border-radius:1px;opacity:.9}
+
+@media (max-width:1099px){#prjFolder{display:none !important}}
+#prjFolder{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.aimode{align-self:stretch;display:grid;grid-template-columns:1fr 1fr}
+.aimode button{white-space:normal;line-height:1.2}
+.ailines{display:flex;flex-direction:column;gap:6px}
+.ailn{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:6px 8px;background:var(--surface-2);font-size:13px}
+.ailn .no{font:700 12px var(--font-mono);color:var(--ink-2)}
+.ailn .tx{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ailn.done{opacity:.6}
+.aidrop{border:2px dashed var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;background:var(--surface-2);color:var(--ink-2);font-size:13px;cursor:pointer}
+.aidrop b{color:var(--ink);font-size:14px}
+.aidrop.over,.aidrop:focus-visible{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--surface-2));outline:none}
+a.btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
 </style>
 
 </head>
@@ -374,7 +403,7 @@ body{padding-block:14px 28px}
       <h1 class="logo"><img class="logo-img" id="logoImg" src="coretanku.png" alt="Coretan"><span class="logo-txt">Coretan</span></h1>
       <p class="tag">Ubah gambar dan narasi jadi video yang seolah digambar tangan</p>
     </div>
-    <div class="top-r"><span class="chip" id="modeChip">memuat…</span><button class="btn small" id="prjOpen" type="button" title="Buka file proyek (.coretan) untuk melanjutkan pekerjaan">Buka proyek</button><button class="btn small" id="prjSave" type="button" title="Simpan semua adegan, gambar, narasi, dan pengaturan ke satu file .coretan">Simpan proyek</button><input id="prjInput" type="file" accept=".coretan,application/octet-stream" hidden><button class="btn primary small" id="hdrExport" type="button">Ekspor video</button></div>
+    <div class="top-r"><span class="chip" id="modeChip">memuat…</span><button class="btn small" id="prjOpen" type="button" title="Buka file proyek (.coretan) untuk melanjutkan pekerjaan">Buka proyek</button><button class="btn small" id="prjSave" type="button" title="Simpan semua adegan, gambar, narasi, dan pengaturan ke satu file .coretan">Simpan proyek</button><button class="btn small" id="prjFolder" type="button" hidden title="Pilih folder tempat proyek disimpan. Setelah dipilih, tombol Simpan proyek langsung menulis ke folder itu tanpa dialog unduhan. Belum dipilih: proyek disimpan lewat unduhan biasa.">📁 Pilih folder</button><input id="prjInput" type="file" accept=".coretan,application/octet-stream" hidden><button class="btn primary small" id="hdrExport" type="button">Ekspor video</button></div>
   </header>
 
   <div class="layout" id="layout">
@@ -420,6 +449,7 @@ body{padding-block:14px 28px}
     <aside class="right-col" aria-label="Properti dan pengaturan">
       <div class="seg" id="rightTabs" role="tablist" aria-label="Panel kanan">
         <button type="button" role="tab" id="tabProps" data-pane="props" aria-selected="true">Properti</button>
+        <button type="button" role="tab" id="tabAud" data-pane="aud" aria-selected="false">Suara</button>
         <button type="button" role="tab" id="tabSet" data-pane="set" aria-selected="false">Pengaturan</button>
         <button type="button" role="tab" id="tabExp" data-pane="exp" aria-selected="false">Ekspor</button>
       </div>
@@ -445,9 +475,6 @@ body{padding-block:14px 28px}
             <span class="narr-label">Klip video</span>
             <span class="aud-name" id="vidInfo"></span>
             <div class="grid2">
-              <label class="f">Mulai dari detik (potong awal klip)
-                <input id="vidStart" type="number" min="0" step="0.1" value="0">
-              </label>
               <label class="f">Tampilan di layar
                 <select id="vidFit">
                   <option value="contain">Pas layar (tepi ikut warna latar)</option>
@@ -455,12 +482,12 @@ body{padding-block:14px 28px}
                   <option value="cover">Penuhi layar (sebagian terpotong)</option>
                 </select>
               </label>
-              <label class="rng">Volume suara klip: <b id="vidVolLbl">100%</b>
-                <input id="vidVol" type="range" min="0" max="100" step="5" value="100">
+              <label class="rng"><span>Volume suara klip: <b id="vidVolLbl">100%</b></span>
+                <input id="vidVol" type="range" min="0" max="200" step="5" value="100">
               </label>
             </div>
             <p class="hint" id="vidAudioHint"></p>
-            <p class="hint">Panjang tayang diatur di kolom Durasi di atas. Klip diputar dari detik “Mulai” sepanjang durasi itu.</p>
+            <p class="hint">Memotong klip: geser garis merah ke titik yang diinginkan lalu tekan <b>✂ Potong</b> (atau tombol S). Pilih potongan lalu Hapus, Geser, atau tarik tepinya di timeline. Potongan sesudahnya otomatis menyambung.</p>
           </div>
           <div class="narr" id="narr">
             <span class="narr-label">Narasi adegan ini</span>
@@ -482,6 +509,9 @@ body{padding-block:14px 28px}
               <button class="btn small primary" id="recStop" type="button">■ Selesai</button>
               <button class="btn small" id="recCancel" type="button">Batal</button>
             </div>
+            <label class="rng" id="narrVolRow" hidden><span>Volume narasi adegan ini: <b id="narrSceneLbl">100%</b></span>
+              <input id="narrSceneVol" type="range" min="0" max="200" step="5" value="100">
+            </label>
             <p class="hint" id="narrHint" hidden></p>
           </div>
           </div>
@@ -526,12 +556,6 @@ body{padding-block:14px 28px}
           </label>
           <label class="rng">Detail garis sketsa: <b id="detailLbl">50%</b>
             <input id="setDetail" type="range" min="0" max="100" step="10" value="50">
-          </label>
-          <label class="rng">Volume narasi: <b id="narrLbl">100%</b>
-            <input id="setNarr" type="range" min="0" max="100" step="5" value="100">
-          </label>
-          <label class="f">Pengurangan noise narasi
-            <select id="setDenoise"><option value="off">Mati</option><option value="low">Ringan</option><option value="mid" selected>Sedang (disarankan)</option><option value="high">Kuat</option></select>
           </label>
         </div>
       </div>
@@ -592,6 +616,38 @@ body{padding-block:14px 28px}
         <p class="hint" id="trHint">Adegan lama mundur sedikit, tanda digambar di ruang kosong, lalu kamera bergeser ke adegan berikutnya. Durasi transisi ditambahkan di antara adegan.</p>
       </div>
 
+        </div>
+      </div>
+      <div class="tabpane off" id="paneAud">
+        <div class="more-col" id="audCol">
+        <div class="panel">
+          <h2>Mixer volume</h2>
+          <p class="hint">Geser untuk menaik-turunkan suara. Langsung terdengar saat video diputar, dan sama persis di hasil ekspor. Di atas 100% berarti dikuatkan.</p>
+          <label class="rng"><span>🎙 Narasi (semua adegan): <b id="narrLbl">100%</b></span>
+            <input id="setNarr" type="range" min="0" max="200" step="5" value="100">
+          </label>
+          <label class="rng"><span>🎞 Suara klip video (semua klip): <b id="clipLbl">100%</b></span>
+            <input id="setClip" type="range" min="0" max="200" step="5" value="100">
+          </label>
+          <label class="rng"><span>🎵 Musik latar: <b id="bgmLbl">25%</b></span>
+            <input id="setBgm" type="range" min="0" max="100" step="5" value="25">
+          </label>
+          <label class="chk"><input id="setDuck" type="checkbox"> Turunkan musik otomatis saat ada narasi atau suara klip</label>
+        </div>
+        <div class="panel" id="mixScenePanel">
+          <h2 id="mixSceneTitle">Adegan terpilih</h2>
+          <label class="rng"><span><span id="mixSceneName">Volume</span>: <b id="mixSceneLbl">100%</b></span>
+            <input id="mixScene" type="range" min="0" max="200" step="5" value="100">
+          </label>
+          <p class="hint" id="mixSceneHint">Volume khusus adegan ini, dikali dengan pengatur “semua adegan” di atas. Berguna bila satu rekaman terlalu pelan atau terlalu keras dibanding yang lain.</p>
+        </div>
+        <div class="panel">
+          <h2>Bersihkan suara narasi</h2>
+          <label class="f">Pengurangan noise
+            <select id="setDenoise"><option value="off">Mati</option><option value="low">Ringan</option><option value="mid" selected>Sedang (disarankan)</option><option value="high">Kuat</option></select>
+          </label>
+          <p class="hint">Menghilangkan desis, dengung kipas, dan bising ruangan dari rekamanmu, lalu menyamakan keras suara antar adegan. Pakai “Dengar asli” di kartu narasi untuk membandingkan. Kalau suara terdengar seperti dalam gua, turunkan ke Ringan.</p>
+        </div>
       <div class="panel">
         <h2>Musik latar</h2>
         <div class="aud">
@@ -600,9 +656,7 @@ body{padding-block:14px 28px}
           <input id="bgmInput" type="file" accept="audio/*" hidden>
           <span class="aud-name" id="bgmName">Belum ada. Musik diulang mengikuti panjang video.</span>
         </div>
-        <label class="rng">Volume musik: <b id="bgmLbl">25%</b>
-          <input id="setBgm" type="range" min="0" max="100" step="5" value="25">
-        </label>
+        <p class="hint">Volume musik diatur di Mixer volume, di atas.</p>
       </div>
         </div>
       </div>
@@ -644,7 +698,16 @@ body{padding-block:14px 28px}
                 <span class="hint">Klik penggaris untuk memindah posisi. Seret bar untuk mengatur kapan elemen muncul dan hilang.</span>
               </div>
               <div class="tl" id="tl"><div class="tl-scroll" id="tlScroll"><div class="tl-inner" id="tlInner"></div></div></div>
-              <div class="add-row">
+              <div class="add-row vid-row" id="vidTools">
+                <button class="btn primary" id="vsSplit" type="button" title="Pintasan: tombol S">✂ Potong di garis merah</button>
+                <button class="btn" id="vsDel" type="button">🗑 Hapus potongan</button>
+                <button class="btn" id="vsL" type="button" aria-label="Geser potongan ke kiri">◀ Geser</button>
+                <button class="btn" id="vsR" type="button" aria-label="Geser potongan ke kanan">Geser ▶</button>
+                <button class="btn" id="vsDup" type="button">⧉ Gandakan</button>
+                <button class="btn" id="vsUndo" type="button">↶ Urungkan</button>
+                <button class="btn" id="vsReset" type="button">Klip utuh</button>
+              </div>
+              <div class="add-row" id="addRowImg">
                 <button class="btn" id="addDraw" type="button">＋ Tambah gambar (boleh banyak)</button>
                 <button class="btn" id="edAI" type="button">✨ Buat gambar dengan AI</button>
                 <button class="btn" id="addText" type="button">＋ Teks</button>
@@ -675,6 +738,10 @@ body{padding-block:14px 28px}
 <div class="modal" id="aiModal" role="dialog" aria-modal="true" aria-labelledby="aiTitle" hidden>
     <div class="modal-card">
       <div class="panel-head"><h2 id="aiTitle">Buat gambar dengan AI (Gemini)</h2><button class="btn icon" id="aiClose" type="button" aria-label="Tutup">×</button></div>
+      <div class="seg aimode" id="aiMode" role="tablist" aria-label="Cara memakai Gemini">
+        <button type="button" role="tab" id="aiModeChat" aria-selected="true">Lewat chat Gemini (tanpa API)</button>
+        <button type="button" role="tab" id="aiModeApi" aria-selected="false">Lewat API</button>
+      </div>
       <div class="grid2">
         <label class="f">Hasilnya dipakai untuk
           <select id="aiTarget"><option value="item">Tambah ke adegan terpilih</option><option value="scene">Adegan baru (berisi gambar ini)</option><option value="sticker">Stiker video</option></select>
@@ -687,14 +754,29 @@ body{padding-block:14px 28px}
         <textarea id="aiPrompt" rows="4" maxlength="2000" placeholder="contoh: seorang guru menjelaskan peta Indonesia di papan tulis&#10;contoh: bola lampu menyala di atas kepala orang"></textarea>
       </label>
       <label class="chk"><input id="aiSticker" type="checkbox"> Hapus latar putih (untuk stiker)</label>
+      <div id="aiChatBox">
+        <p class="hint">Cara ini memakai kuota chat Gemini-mu (gemini.google.com), bukan token API. Browser tidak mengizinkan app ini mengirim prompt atau mengambil gambar dari chat Gemini secara otomatis, jadi langkahnya: <b>1)</b> salin prompt, <b>2)</b> buka Gemini, tempel, dan tunggu gambarnya jadi, <b>3)</b> salin gambar hasilnya (klik kanan → Salin gambar), lalu kembali ke sini dan tekan <b>Ctrl+V</b>.</p>
+        <div class="ailines" id="aiLines"><p class="hint">Tulis prompt di kolom di atas, satu baris untuk satu gambar. Barisnya muncul di sini dengan tombol Salin.</p></div>
+        <div class="actions">
+          <a class="btn primary" id="aiOpenG" href="https://gemini.google.com/app" target="_blank" rel="noopener">Buka Gemini ↗</a>
+          <button class="btn" id="aiCopyAll" type="button">Salin semua prompt</button>
+        </div>
+        <div class="aidrop" id="aiDrop" tabindex="0" role="button" aria-label="Tempel atau seret gambar hasil Gemini ke sini">
+          <b>Tempel gambar hasil Gemini di sini (Ctrl+V)</b>
+          <span>atau seret file gambar ke kotak ini</span>
+          <button class="btn small" id="aiPick" type="button">Pilih file gambar</button>
+          <input id="aiFiles" type="file" accept="image/*" multiple hidden>
+        </div>
+        <p class="hint" id="aiTip">Gambar dari Gemini memakai latar yang mengikuti prompt. Prompt yang disalin sudah meminta latar putih polos, supaya cocok untuk efek sketsa dan stiker.</p>
+      </div>
       <div class="aiprev" id="aiPrev" hidden><img id="aiImg" alt="Hasil gambar AI"></div>
       <p class="msg" id="aiMsg" role="status"></p>
-      <div class="actions">
+      <div class="actions" id="aiApiActions">
         <button class="btn primary" id="aiGo" type="button">Buat gambar</button>
         <button class="btn primary" id="aiAdd" type="button" hidden>Tambahkan</button>
         <button class="btn" id="aiStop" type="button" hidden>Batal</button>
       </div>
-      <details class="aikey" open>
+      <details class="aikey" id="aiKeyBox" open>
         <summary>Kunci API Gemini</summary>
         <p class="hint" id="aiNeedKey">Belum ada kunci. Buat di Google AI Studio (aistudio.google.com), lalu tempel di sini. Kunci dikirim langsung dari browsermu ke Google, tidak lewat server lain.</p>
         <div class="keyrow"><input id="aiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Tempel kunci API di sini" aria-label="Kunci API Gemini"><button class="btn small" id="aiShow" type="button">Tampilkan</button></div>
@@ -2589,7 +2671,7 @@ var cv = $('#stage'), cx = cv.getContext('2d');
 var state = {
   scenes: [], bgm: null, playing: false, exporting: false, fresh: true,
   set: { res: '720', fps: 30, bg: '#ffffff', fit: 'contain', hand: true, speed: 5, tool: 'pulpen', skin: 'sawo', sketchDetail: 50,
-         narrVol: 100, bgmVol: 25, denoise: 'mid', handCustom: null, flow: 'tulis', textFont: 'kalam', textSize: 'm', textColor: '#142320',
+         narrVol: 100, clipVol: 100, bgmVol: 25, duck: false, denoise: 'mid', handCustom: null, flow: 'tulis', textFont: 'kalam', textSize: 'm', textColor: '#142320',
          trType: 'pan', trDir: 'right', trSym: 'arrow', trColor: '#1D4ED8', trSize: 100, trDur: 1.6 }
 };
 var uid = 0, curT = 0;
@@ -2748,11 +2830,12 @@ function fft(re, im) {
 
 /* level -> { over: faktor pengali derau, floor: gain minimum } */
 var LEVELS = {
-  low:  { over: 1.0, floor: 0.30 },
-  mid:  { over: 1.5, floor: 0.14 },
-  high: { over: 2.2, floor: 0.06 }
+  low:  { oN: 1.7, oS: 0.6, floor: 0.35 },
+  mid:  { oN: 2.4, oS: 0.7, floor: 0.16 },
+  high: { oN: 3.2, oS: 0.9, floor: 0.07 }
 };
 K.DENOISE_LEVELS = LEVELS;
+var TARGET_RMS = 0.15, CEIL = 0.95;     /* suara bicara dibuat rata di sekitar -16 dBFS, puncak tidak melewati 0,95 */
 
 var mc = null, waiters = [];
 function yieldNow() {
@@ -2760,89 +2843,164 @@ function yieldNow() {
   return new Promise(function (r) { waiters.push(r); mc.port2.postMessage(0); });
 }
 
-/* satu kanal: kembalikan Float32Array hasil (belum dinormalisasi) */
+/* integral eksponensial E1(x), dipakai penaksir amplitudo log-spektral */
+function E1(x) {
+  if (x < 1) return -0.5772156649 - Math.log(x) + x * (1 - x * (0.25 - x * (1 / 18 - x * (1 / 96 - x / 600))));
+  return Math.exp(-x) / x * (x * x + 2.334733 * x + 0.250621) / (x * x + 3.330657 * x + 1.681534);
+}
+
+var BLK = 43, BWIN = 4, TSM = 0.85, OMEGA = (K.tune && K.tune.omega) || 1.55;   /* blok ~0,25 dtk; jendela pelacakan ±1 dtk; faktor koreksi bias minimum */
+
+/* satu kanal: kembalikan Float32Array hasil (belum diratakan levelnya) */
 async function denoiseChannel(x, sr, level, onProg) {
-  var P = LEVELS[level] || LEVELS.mid;
+  var P0 = LEVELS[level] || LEVELS.mid, TT = K.tune || {}, P = { oN: TT.oN || P0.oN, oS: TT.oS || P0.oS, floor: TT.floor || P0.floor };
   var L = x.length, padLen = L + 2 * N;
   var F = Math.floor((padLen - N) / HOP) + 1;
   var p = new Float64Array(padLen); for (var i = 0; i < L; i++) p[N + i] = x[i];
   var o = new Float64Array(padLen);
   var re = new Float64Array(N), im = new Float64Array(N), k, f, s;
+  var pw = new Float64Array(H + 1), sm = new Float64Array(H + 1);
 
-  /* 1. energi tiap frame -> pilih frame paling sunyi untuk profil derau */
-  var E = new Float64Array(F);
-  for (f = 0; f < F; f++) { var e = 0, st = f * HOP; for (s = 0; s < N; s += 2) { var v = p[st + s]; e += v * v; } E[f] = e; }
-  var cand = [];
-  for (f = 0; f < F; f++) if (E[f] > 1e-9 && f * HOP >= N && f * HOP + N <= N + L) cand.push(f);
-  if (cand.length < 8) cand = Array.from(E.keys()).filter(function (q) { return E[q] > 1e-12; });
-  if (!cand.length) return Float32Array.from(x);
-  cand.sort(function (a, b) { return E[a] - E[b]; });
-  var take = Math.max(8, Math.floor(cand.length * 0.12)); take = Math.min(take, cand.length);
-  var pick = cand.slice(0, take), stride = Math.max(1, Math.floor(pick.length / 300));
-  var N2 = new Float64Array(H + 1), cnt = 0;
-  for (var q = 0; q < pick.length; q += stride) {
-    var base = pick[q] * HOP;
-    for (s = 0; s < N; s++) { re[s] = p[base + s] * win[s]; im[s] = 0; }
-    fft(re, im);
-    for (k = 0; k <= H; k++) N2[k] += re[k] * re[k] + im[k] * im[k];
-    cnt++;
-  }
-  var sm = new Float64Array(H + 1);
-  for (k = 0; k <= H; k++) {
-    var a0 = 0, c0 = 0;
-    for (var d = -3; d <= 3; d++) { var kk = k + d; if (kk >= 0 && kk <= H) { a0 += N2[kk]; c0++; } }
-    sm[k] = (a0 / c0 / cnt) * P.over + 1e-12;
-  }
-  N2 = sm;
-
-  /* 2. proses semua frame */
-  var prevClean = new Float64Array(H + 1), G = new Float64Array(H + 1), G2 = new Float64Array(H + 1), BETA = 0.9;
-  var binHz = sr / N, lo1 = 55 / binHz, lo2 = 95 / binHz;
+  /* ---- 1. lintasan derau: nilai minimum spektrum (dihaluskan) tiap blok ~0,25 dtk, lalu minimum di jendela ±1 dtk ---- */
+  var nB = Math.ceil(F / BLK), bmin = [], S = new Float64Array(H + 1), b, first = true;
+  var cur = new Float64Array(H + 1);
   for (f = 0; f < F; f++) {
     var b0 = f * HOP;
     for (s = 0; s < N; s++) { re[s] = p[b0 + s] * win[s]; im[s] = 0; }
     fft(re, im);
+    for (k = 0; k <= H; k++) pw[k] = re[k] * re[k] + im[k] * im[k];
+    sm[0] = pw[0]; sm[H] = pw[H];
+    for (k = 1; k < H; k++) sm[k] = 0.25 * pw[k - 1] + 0.5 * pw[k] + 0.25 * pw[k + 1];
+    if (first) { for (k = 0; k <= H; k++) S[k] = sm[k]; first = false; }
+    else for (k = 0; k <= H; k++) S[k] = TSM * S[k] + (1 - TSM) * sm[k];
+    if (f % BLK === 0) { for (k = 0; k <= H; k++) cur[k] = S[k]; }
+    else for (k = 0; k <= H; k++) if (S[k] < cur[k]) cur[k] = S[k];
+    if (f % BLK === BLK - 1 || f === F - 1) { bmin.push(Float64Array.from(cur)); }
+    if (f % 200 === 199) { if (onProg) onProg(0.25 * f / F); await yieldNow(); }
+  }
+  nB = bmin.length;
+  var trk = [];
+  for (b = 0; b < nB; b++) {
+    var t = new Float64Array(H + 1); for (k = 0; k <= H; k++) t[k] = 1e300;
+    for (var q = Math.max(0, b - BWIN); q <= Math.min(nB - 1, b + BWIN); q++) { var m = bmin[q]; for (k = 0; k <= H; k++) if (m[k] < t[k]) t[k] = m[k]; }
+    for (k = 0; k <= H; k++) t[k] = t[k] * OMEGA + 1e-12;
+    trk.push(t);
+  }
+  /* profil derau global dari frame paling sunyi: batas bawah supaya pelacakan tidak meremehkan derau yang stabil */
+  var E = new Float64Array(F);
+  for (f = 0; f < F; f++) { var e = 0, st = f * HOP; for (s = 0; s < N; s += 2) { var v = p[st + s]; e += v * v; } E[f] = e; }
+  var cand = [];
+  for (f = 0; f < F; f++) if (E[f] > 1e-9 && f * HOP >= N && f * HOP + N <= N + L) cand.push(f);
+  if (cand.length < 8) cand = Array.from(E.keys()).filter(function (q2) { return E[q2] > 1e-12; });
+  if (!cand.length) return Float32Array.from(x);
+  cand.sort(function (a, c) { return E[a] - E[c]; });
+  var take = Math.min(cand.length, Math.max(8, Math.floor(cand.length * 0.1)));
+  var pick = cand.slice(0, take), stride = Math.max(1, Math.floor(pick.length / 300));
+  var NG = new Float64Array(H + 1), cnt = 0;
+  for (var q3 = 0; q3 < pick.length; q3 += stride) {
+    var base = pick[q3] * HOP;
+    for (s = 0; s < N; s++) { re[s] = p[base + s] * win[s]; im[s] = 0; }
+    fft(re, im);
+    for (k = 0; k <= H; k++) NG[k] += re[k] * re[k] + im[k] * im[k];
+    cnt++;
+  }
+  for (k = 0; k <= H; k++) NG[k] = NG[k] / cnt;   /* tanpa penghalusan antar-bin: nada dengung tetap tertangkap */
+
+  /* ---- 2. proses semua frame: penaksir amplitudo log-spektral (LSA) + a priori SNR "decision-directed" ---- */
+  var Nb = new Float64Array(H + 1), act = 0, prevClean = new Float64Array(H + 1), G = new Float64Array(H + 1), G2 = new Float64Array(H + 1), Gs = new Float64Array(H + 1), Nn = new Float64Array(H + 1);
+  var TU = K.tune || {}, BETA = TU.beta || 0.98, binHz = sr / N, lo1 = 55 / binHz, lo2 = 95 / binHz, kA = Math.round(150 / binHz), kB = Math.min(H, Math.round(3800 / binHz)), REL = TU.rel != null ? TU.rel : 0.6, Q0 = TU.q0 != null ? TU.q0 : 0.4;
+  for (f = 0; f < F; f++) {
+    var bb = f * HOP;
+    /* interpolasi lintasan derau antar pusat blok */
+    var pos = (f + 0.5) / BLK - 0.5, ia = Math.floor(pos), fr = pos - ia, ta = trk[Math.max(0, Math.min(nB - 1, ia))], tb = trk[Math.max(0, Math.min(nB - 1, ia + 1))];
+    for (k = 0; k <= H; k++) { var nt = ta[k] + (tb[k] - ta[k]) * fr, ng = NG[k] * 0.8; Nb[k] = nt > ng ? nt : ng; }
+    for (s = 0; s < N; s++) { re[s] = p[bb + s] * win[s]; im[s] = 0; }
+    fft(re, im);
+    /* seberapa "ada bicara" di frame ini: daya total di pita suara dibanding derau; derau diperlakukan lebih keras saat sepi, lebih lunak saat bicara */
+    var sp = 0, sn = 0;
+    for (k = kA; k <= kB; k++) { sp += re[k] * re[k] + im[k] * im[k]; sn += Nb[k]; }
+    var rr = sp / sn, aa = rr <= 1.8 ? 0 : (rr >= 5 ? 1 : (rr - 1.8) / 3.2);
+    act = aa > act * 0.9 ? aa : act * 0.9;
+    var ovr = P.oN + (P.oS - P.oN) * act;
+    for (k = 0; k <= H; k++) Nn[k] = Nb[k] * ovr;
     for (k = 0; k <= H; k++) {
-      var pw = re[k] * re[k] + im[k] * im[k];
-      var gamma = pw / N2[k];
-      var xi = BETA * (prevClean[k] / N2[k]) + (1 - BETA) * Math.max(gamma - 1, 0);
-      var g = xi / (1 + xi);
+      var pwk = re[k] * re[k] + im[k] * im[k];
+      var gamma = pwk / Nn[k];
+      var xi = BETA * (prevClean[k] / Nn[k]) + (1 - BETA) * Math.max(gamma - 1, 0);
+      if (xi < 0.003) xi = 0.003;
+      var ratio = xi / (1 + xi), vv = ratio * gamma; if (vv < 1e-6) vv = 1e-6;
+      var g = ratio * Math.exp(0.5 * E1(vv));
+      if (g > 1) g = 1;
+      if (Q0 >= 0) { var pp = 1 / (1 + (Q0 / (1 - Q0)) * (1 + xi) * Math.exp(-vv)); g = Math.pow(g, pp) * Math.pow(P.floor, 1 - pp); }
       if (g < P.floor) g = P.floor;
       G[k] = g;
     }
-    /* haluskan antar-bin supaya tidak ada nada "berdenting" */
+    /* haluskan antar-bin lalu antar-waktu (naik cepat, turun pelan) supaya tidak ada nada "berdenting" */
     G2[0] = G[0]; G2[H] = G[H];
     for (k = 1; k < H; k++) G2[k] = 0.25 * G[k - 1] + 0.5 * G[k] + 0.25 * G[k + 1];
     for (k = 0; k <= H; k++) {
-      var gg = G2[k];
+      var gg = G2[k], rel = Gs[k] * REL; if (gg < rel) gg = rel; Gs[k] = gg;
       if (k < lo2) gg *= k <= lo1 ? 0 : (k - lo1) / (lo2 - lo1);   /* buang dengung di bawah ~60 Hz */
       var pw2 = re[k] * re[k] + im[k] * im[k];
       prevClean[k] = gg * gg * pw2;
       re[k] *= gg; im[k] *= gg;
       if (k > 0 && k < H) { re[N - k] *= gg; im[N - k] *= gg; }
     }
-    /* IFFT lewat konjugat */
     for (s = 0; s < N; s++) im[s] = -im[s];
     fft(re, im);
-    for (s = 0; s < N; s++) o[b0 + s] += (re[s] / N) * win[s];
-    if (f % 160 === 159) { if (onProg) onProg(f / F); await yieldNow(); }
+    for (s = 0; s < N; s++) o[bb + s] += (re[s] / N) * win[s];
+    if (f % 160 === 159) { if (onProg) onProg(0.25 + 0.75 * f / F); await yieldNow(); }
   }
   var out = new Float32Array(L);
   for (i = 0; i < L; i++) out[i] = o[N + i] / 2;
   return out;
 }
 
-/* AudioBuffer -> AudioBuffer bersih */
+/* pembatas puncak offline: turunkan gain sedikit di sekitar puncak yang melewati batas (tanpa memotong gelombang) */
+function limitPeaks(d, ceil) {
+  var BL = 64, nb = Math.ceil(d.length / BL), gb = new Float32Array(nb), i, b;
+  var any = false;
+  for (b = 0; b < nb; b++) {
+    var m = 0, e = Math.min(d.length, (b + 1) * BL);
+    for (i = b * BL; i < e; i++) { var a = d[i] < 0 ? -d[i] : d[i]; if (a > m) m = a; }
+    gb[b] = m > ceil ? ceil / m : 1; if (m > ceil) any = true;
+  }
+  if (!any) return;
+  var g2 = new Float32Array(nb), R = 3, j;
+  for (b = 0; b < nb; b++) { var mn = 1; for (j = Math.max(0, b - R); j <= Math.min(nb - 1, b + R); j++) if (gb[j] < mn) mn = gb[j]; g2[b] = mn; }
+  var g3 = new Float32Array(nb);
+  for (b = 0; b < nb; b++) { var sm = 0, c = 0; for (j = Math.max(0, b - R); j <= Math.min(nb - 1, b + R); j++) { sm += g2[j]; c++; } g3[b] = sm / c; }
+  for (i = 0; i < d.length; i++) {
+    var pos = (i - BL / 2) / BL, ia = Math.floor(pos), fr = pos - ia;
+    var ga = g3[Math.max(0, Math.min(nb - 1, ia))], gc = g3[Math.max(0, Math.min(nb - 1, ia + 1))];
+    var gg = ga + (gc - ga) * fr, y = d[i] * gg;
+    d[i] = y > 0.995 ? 0.995 : (y < -0.995 ? -0.995 : y);
+  }
+}
+
+/* AudioBuffer -> AudioBuffer bersih dan rata levelnya */
 async function denoiseBuffer(buf, level, onProg) {
-  var nch = buf.numberOfChannels, chans = [], c, peak = 0, i;
+  var nch = buf.numberOfChannels, chans = [], c, i;
   for (c = 0; c < nch; c++) {
     chans.push(await denoiseChannel(buf.getChannelData(c), buf.sampleRate, level, function (fr) { if (onProg) onProg((c + fr) / nch); }));
   }
-  for (c = 0; c < nch; c++) { var d = chans[c]; for (i = 0; i < d.length; i++) { var a = d[i] < 0 ? -d[i] : d[i]; if (a > peak) peak = a; } }
-  var gain = peak > 1e-4 ? Math.min(4, Math.max(0.25, 0.9 / peak)) : 1;
+  /* ratakan level bagian yang berbicara (RMS), bukan puncak tertinggi */
+  var BL = Math.max(64, Math.round(buf.sampleRate * 0.02)), rm = [], n = chans[0].length;
+  for (var q = 0; q + BL <= n; q += BL) {
+    var e = 0; for (c = 0; c < nch; c++) { var d0 = chans[c]; for (i = q; i < q + BL; i++) e += d0[i] * d0[i]; }
+    rm.push(Math.sqrt(e / (BL * nch)));
+  }
+  var gain = 1;
+  if (rm.length) {
+    var sorted = rm.slice().sort(function (a, b) { return a - b; }), ref = sorted[Math.floor(sorted.length * 0.9)];
+    var se = 0, sc = 0;
+    rm.forEach(function (v) { if (v > 0.25 * ref && v > 1e-5) { se += v * v; sc++; } });
+    if (sc) { var act = Math.sqrt(se / sc); gain = Math.min(10, Math.max(0.1, TARGET_RMS / act)); }
+  }
   var out = K.ac().createBuffer(nch, buf.length, buf.sampleRate);
   for (c = 0; c < nch; c++) {
     var d2 = chans[c]; if (gain !== 1) for (i = 0; i < d2.length; i++) d2[i] *= gain;
+    limitPeaks(d2, CEIL);
     out.copyToChannel(d2, c);
   }
   return out;
@@ -2855,15 +3013,100 @@ K.narrBuf = function (s) {
   if (lvl !== 'off' && s.clean && s.cleanLvl === lvl && s.cleanSrc === s.audio) return s.clean;
   return s.audio;
 };
-/* rencana audio satu adegan untuk pemutaran & ekspor: { buf, off, len, gain } atau null */
-K.sceneAudioPlan = function (s) {
+/* potongan audio satu adegan untuk pemutaran & ekspor: [{ buf, off, len, at }] (at = detik dari awal adegan) */
+K.sceneAudioParts = function (s) {
   if (s.video) {
-    var v = s.video; if (!v.audio) return null;
-    var len = Math.min(s.dur, v.audio.duration - v.start);
-    return len > 0 ? { buf: v.audio, off: v.start, len: len, gain: v.vol / 100 } : null;
+    var v = s.video; if (!v.audio) return [];
+    var segs = K.vidSegs(s), t0 = 0, out = [];
+    segs.forEach(function (sg) {
+      var len = Math.min(sg.b - sg.a, v.audio.duration - sg.a);
+      if (len > 0.001) out.push({ buf: v.audio, off: sg.a, len: len, at: t0 });
+      t0 += sg.b - sg.a;
+    });
+    return out;
   }
-  var b = K.narrBuf(s); if (!b) return null;
-  return { buf: b, off: 0, len: b.duration, gain: state.set.narrVol / 100 };
+  var b = K.narrBuf(s); if (!b) return [];
+  return [{ buf: b, off: 0, len: b.duration, at: 0 }];
+};
+K.sceneAudioPlan = function (s) { var p = K.sceneAudioParts(s); return p.length ? p[0] : null; };
+/* pengali volume: per adegan x pengatur semua adegan */
+K.sceneGain = function (s) {
+  var set = state.set;
+  if (s.video) return Math.max(0, (s.video.vol == null ? 100 : s.video.vol) / 100) * (set.clipVol == null ? 100 : set.clipVol) / 100;
+  return Math.max(0, (s.vol == null ? 100 : s.vol) / 100) * set.narrVol / 100;
+};
+K.bgmGain = function () { return state.set.bgmVol / 100; };
+
+/* pembatas lembut: tidak mengubah suara di bawah 0,8, hanya melunakkan puncak supaya tidak pecah saat volume dinaikkan.
+   Rantai: gain 0,5 -> WaveShaper (kurva dibaca untuk -2..2) -> gain 2. Mengembalikan simpul masuk; .connect() mengarah ke simpul keluar. */
+K.makeLimiter = function (ctx) {
+  var pre = ctx.createGain(), ws = ctx.createWaveShaper(), post = ctx.createGain(), n = 4097, c = new Float32Array(n);
+  pre.gain.value = 0.5; post.gain.value = 2;
+  for (var i = 0; i < n; i++) {
+    var u = (i / (n - 1)) * 2 - 1, x = u * 2, ax = Math.abs(x), y = ax <= 0.8 ? ax : 0.8 + 0.2 * Math.tanh((ax - 0.8) / 0.2);
+    c[i] = 0.5 * (x < 0 ? -y : y);
+  }
+  ws.curve = c; try { ws.oversample = '2x'; } catch (e) {}
+  pre.connect(ws); ws.connect(post);
+  pre._all = [ws, post];
+  pre.connect = function (t) { return post.connect(t); };
+  return pre;
+};
+
+/* sambungkan audio satu adegan. map(t) = waktu konteks untuk waktu garis waktu t. out = { nodes, gains } (opsional) */
+K.wireScene = function (ctx, dest, o, map, from, out) {
+  K.sceneAudioParts(o.s).forEach(function (pt) {
+    var abs = o.start + pt.at, end = abs + pt.len;
+    if (end <= from + 0.001) return;
+    var skip = Math.max(0, from - abs), when = map(abs + skip), len = pt.len - skip;
+    var vg = ctx.createGain(); vg.gain.value = K.sceneGain(o.s); vg.connect(dest);
+    var fg = ctx.createGain(); fg.connect(vg);
+    var src = ctx.createBufferSource(); src.buffer = pt.buf; src.connect(fg);
+    var fd = Math.min(0.006, len / 3);
+    fg.gain.setValueAtTime(0, when); fg.gain.linearRampToValueAtTime(1, when + fd);
+    fg.gain.setValueAtTime(1, when + len - fd); fg.gain.linearRampToValueAtTime(0, when + len);
+    src.start(when, pt.off + skip, len);
+    if (out) { out.nodes.push(src, fg, vg); out.gains.push({ g: vg, f: function () { return K.sceneGain(o.s); } }); }
+  });
+};
+/* selang waktu ketika ada suara (untuk menurunkan musik latar), digabung bila berdekatan */
+K.voiceSpans = function () {
+  var sp = [];
+  K.layoutTimes().forEach(function (o) {
+    if (o.kind !== 'scene' || K.sceneGain(o.s) < 0.02) return;
+    K.sceneAudioParts(o.s).forEach(function (pt) { sp.push([o.start + pt.at, o.start + pt.at + pt.len]); });
+  });
+  sp.sort(function (a, b) { return a[0] - b[0]; });
+  var m = [];
+  sp.forEach(function (x) { var l = m[m.length - 1]; if (l && x[0] - l[1] < 1.2) l[1] = Math.max(l[1], x[1]); else m.push([x[0], x[1]]); });
+  return m;
+};
+var DUCK = 0.3;
+K.wireBgm = function (ctx, dest, from, tot, map, out) {
+  if (!state.bgm) return;
+  var vg = ctx.createGain(); vg.gain.value = K.bgmGain(); vg.connect(dest);
+  var dg = ctx.createGain(); dg.connect(vg);
+  var bs = ctx.createBufferSource(); bs.buffer = state.bgm.buf; bs.loop = true; bs.connect(dg);
+  var w0 = map(from);
+  if (state.set.duck) {
+    var sp = K.voiceSpans(), inside = sp.some(function (x) { return x[0] <= from && from < x[1]; });
+    dg.gain.setValueAtTime(inside ? DUCK : 1, w0);
+    sp.forEach(function (x) {
+      if (x[1] <= from) return;
+      if (x[0] > from) { dg.gain.setValueAtTime(1, map(Math.max(from, x[0] - 0.3))); dg.gain.linearRampToValueAtTime(DUCK, map(x[0])); }
+      dg.gain.setValueAtTime(DUCK, map(x[1]));
+      dg.gain.linearRampToValueAtTime(1, map(x[1] + 0.6));
+    });
+  } else dg.gain.value = 1;
+  bs.start(w0, from % state.bgm.buf.duration);
+  try { bs.stop(map(tot)); } catch (e) {}
+  if (out) { out.nodes.push(bs, dg, vg); out.gains.push({ g: vg, f: K.bgmGain }); }
+};
+/* ubah volume yang sedang diputar tanpa menghentikan */
+K.liveGains = [];
+K.applyVolumes = function () {
+  var c = K.ac(), t = c.currentTime;
+  K.liveGains.forEach(function (x) { try { x.g.gain.setTargetAtTime(x.f(), t, 0.02); } catch (e) {} });
 };
 
 var queue = Promise.resolve(), activeJobs = 0;
@@ -3551,26 +3794,15 @@ var raf = 0, T0 = 0, nodes = [], onTick = null, onEnd = null;
 
 function stopAudio() {
   nodes.forEach(function (n) { try { n.stop(); } catch (e) {} try { n.disconnect(); } catch (e) {} });
-  nodes = [];
+  nodes = []; K.liveGains = [];
 }
 function scheduleAudio(from, target) {
-  var c = K.ac(), now = c.currentTime + 0.12, tot = K.total();
-  K.layoutTimes().forEach(function (o) {
-    if (o.kind !== 'scene') return;
-    var pl = K.sceneAudioPlan(o.s); if (!pl) return;
-    if (o.start + pl.len <= from) return;
-    var g = c.createGain(); g.gain.value = pl.gain; g.connect(target);
-    var src = c.createBufferSource(); src.buffer = pl.buf; src.connect(g);
-    if (o.start < from) src.start(now, pl.off + (from - o.start), pl.len - (from - o.start)); else src.start(T0 + o.start, pl.off, pl.len);
-    nodes.push(src, g);
-  });
-  if (state.bgm) {
-    var g2 = c.createGain(); g2.gain.value = state.set.bgmVol / 100; g2.connect(target);
-    var bs = c.createBufferSource(); bs.buffer = state.bgm.buf; bs.loop = true; bs.connect(g2);
-    bs.start(now, from % state.bgm.buf.duration);
-    try { bs.stop(now + Math.max(0.1, tot - from)); } catch (e) {}
-    nodes.push(bs, g2);
-  }
+  var c = K.ac(), tot = K.total(), out = { nodes: nodes, gains: [] };
+  var lim = K.makeLimiter(c); lim.connect(target); nodes.push(lim); lim._all.forEach(function (n) { nodes.push(n); });
+  var map = function (t) { return T0 + t; };
+  K.layoutTimes().forEach(function (o) { if (o.kind === 'scene') K.wireScene(c, lim, o, map, from, out); });
+  K.wireBgm(c, lim, from, tot, map, out);
+  K.liveGains = out.gains;
 }
 
 function play(from, opts) {
@@ -3718,14 +3950,12 @@ $('#trSym').addEventListener('change', function (e) { state.set.trSym = e.target
 $('#trColor').addEventListener('input', function (e) { state.set.trColor = e.target.value; K.render(K.getT()); });
 $('#trSize').addEventListener('input', function (e) { state.set.trSize = parseInt(e.target.value, 10); $('#trSizeLbl').textContent = state.set.trSize + '%'; K.render(K.getT()); });
 $('#trDur').addEventListener('input', function (e) { state.set.trDur = parseFloat(e.target.value); $('#trDurLbl').textContent = state.set.trDur.toFixed(1) + ' dtk'; trChanged(); });
-$('#setNarr').addEventListener('input', function (e) { state.set.narrVol = parseInt(e.target.value, 10); $('#narrLbl').textContent = state.set.narrVol + '%'; });
 $('#setDenoise').addEventListener('change', function (e) {
   state.set.denoise = e.target.value;
   var s = K.selScene(); if (K.onCleanDone) K.onCleanDone();
   if (state.set.denoise === 'off') K.setMsg('Pengurangan noise dimatikan. Narasi dipakai apa adanya.', 'ok');
   else K.cleanAll(false);
 });
-$('#setBgm').addEventListener('input', function (e) { state.set.bgmVol = parseInt(e.target.value, 10); $('#bgmLbl').textContent = state.set.bgmVol + '%'; });
 
 /* ---------- transport ---------- */
 var playBtn = $('#playBtn'), scrub = $('#scrub');
@@ -4080,7 +4310,7 @@ function doListen(mode) {
   var c = K.ac(); c.resume();
   var buf = mode === 'raw' ? s.audio : K.narrBuf(s);
   var src = c.createBufferSource(), g = c.createGain();
-  src.buffer = buf; g.gain.value = state.set.narrVol / 100; src.connect(g); g.connect(c.destination);
+  src.buffer = buf; g.gain.value = K.sceneGain(s); src.connect(g); var lim = K.makeLimiter(c); g.connect(lim); lim.connect(c.destination);
   src.onended = function () { if (listen === src) { listen = null; listenMode = ''; updateNarrUI(s); } };
   src.start(); listen = src; listenMode = mode; updateNarrUI(s);
   if (mode === 'clean' && state.set.denoise !== 'off' && buf === s.audio) K.setMsg('Suara bersih belum selesai diproses, yang terdengar masih suara asli. Tunggu sebentar lalu dengarkan lagi.');
@@ -4161,11 +4391,11 @@ $('#recCancel').addEventListener('click', function () { stopRec(true); K.setMsg(
 /* =================== durasi, putar, hapus =================== */
 function setDur(s, v) {
   var e0 = K.sceneEntry(s), lt = e0 ? K.getT() - e0.start : 0, inside = lt >= 0 && lt <= s.dur;
-  s.dur = s.video ? clamp(r1(v), 0.5, Math.max(0.5, r1(s.video.srcDur - s.video.start))) : clamp(r1(v), 1, 600);
+  if (s.video) K.vidSetDur(s, clamp(r1(v), 0.5, 600)); else s.dur = clamp(r1(v), 1, 600);
   if (s.spread && !s.video) K.respread(s);
   s.items.forEach(function (it) { if (it.start > s.dur - 0.2) it.start = Math.max(0, r1(s.dur - 0.2)); });
   $('#edDur').value = String(s.dur);
-  K.updateTotals(); K.renderScenes(); if (!s.video) renderTimeline();
+  K.updateTotals(); K.renderScenes(); renderTimeline(); if (s.video && K.vidSyncBtns) K.vidSyncBtns();
   var e1 = K.sceneEntry(s);
   if (inside && e1) { K.setT(e1.start + Math.min(lt, s.dur - 0.001)); }
   K.render(K.getT()); updateHead();
@@ -4246,19 +4476,26 @@ function renderTimeline() {
   var s = K.selScene(); inner.textContent = ''; head = null;
   if (!s) return;
   var avail = Math.max(220, tlScroll.clientWidth || 640);
-  pps = Math.max(8, ((avail - 2) / s.dur) * ui.zoom);
+  pps = K.ppsLock || Math.max(8, ((avail - 2) / s.dur) * ui.zoom);
   var W = Math.max(avail - 2, Math.ceil(s.dur * pps)); inner.style.width = W + 'px';
   var ruler = el('div', 'tl-ruler'); ruler.dataset.k = 'seek';
   var step = tickStep();
   for (var t = 0; t <= s.dur + 1e-6; t += step) { var tk = el('div', 'tl-tick', fmtT(t)); tk.style.left = (t * pps) + 'px'; ruler.appendChild(tk); }
   inner.appendChild(ruler);
-  var wv = el('div', 'tl-wave'); wv.dataset.k = 'seek'; inner.appendChild(wv); drawWave(s, wv);
+  var wv = el('div', 'tl-wave'); wv.dataset.k = 'seek'; inner.appendChild(wv);
   var rows = el('div', 'tl-rows'); inner.appendChild(rows);
-  for (var i = s.items.length - 1; i >= 0; i--) { var row = el('div', 'tl-row'); row.appendChild(barEl(s, s.items[i])); rows.appendChild(row); }
-  if (!s.items.length) rows.appendChild(el('div', 'tl-empty', 'Belum ada elemen. Tambahkan gambar atau teks dengan tombol di bawah.'));
+  if (s.video) {
+    K.vidDrawWave(s, wv, pps, 48);
+    var vrow = el('div', 'tl-row vrow'); K.vidBuildRow(s, vrow, pps); rows.appendChild(vrow);
+  } else {
+    drawWave(s, wv);
+    for (var i = s.items.length - 1; i >= 0; i--) { var row = el('div', 'tl-row'); row.appendChild(barEl(s, s.items[i])); rows.appendChild(row); }
+    if (!s.items.length) rows.appendChild(el('div', 'tl-empty', 'Belum ada elemen. Tambahkan gambar atau teks dengan tombol di bawah.'));
+  }
   head = el('div', 'tl-head'); inner.appendChild(head);
   updateHead();
 }
+K.renderTimeline = renderTimeline; K.tlPps = function () { return pps; };
 function updateHead(follow) {
   var s = K.selScene(); if (!s || !head) return;
   var lt = headLocal(s), lbl = $('#headLbl');
@@ -4345,7 +4582,7 @@ $('#zoomIn').addEventListener('click', function () { zoomTo(ui.zoom * 1.6); });
 $('#zoomOut').addEventListener('click', function () { zoomTo(ui.zoom / 1.6); });
 $('#zoomFit').addEventListener('click', function () { zoomTo(1); });
 var rzT = 0;
-window.addEventListener('resize', function () { clearTimeout(rzT); rzT = setTimeout(function () { if (K.selScene() && !K.selScene().video && !dSceneBody.hidden) renderTimeline(); }, 150); });
+window.addEventListener('resize', function () { clearTimeout(rzT); rzT = setTimeout(function () { if (K.selScene() && !dSceneBody.hidden) renderTimeline(); }, 150); });
 
 /* =================== pilih elemen =================== */
 K.selectItem = function (id) {
@@ -4694,20 +4931,20 @@ K.onTime = function (t) {
 K.renderEditor = function () {
   var s = K.selScene();
   emptyEl.hidden = !!s; bodyEl.hidden = !s;
-  dSceneBody.hidden = !s || !!s.video; dSceneEmpty.hidden = !!s && !s.video;
+  dSceneBody.hidden = !s; dSceneEmpty.hidden = !!s;
+  dSceneBody.classList.toggle('is-vid', !!(s && s.video));
   dSceneEmpty.textContent = !s ? 'Belum ada adegan. Tambahkan gambar di panel kiri.' : '';
-  if (s && s.video) dSceneEmpty.textContent = 'Klip video tampil utuh selama durasinya. Atur mulai, lama, dan suara di kartu Adegan sebelah kanan.';
   if (K.syncProps) K.syncProps();
-  if (!s) { stopListen(); return; }
+  if (!s) { stopListen(); if (K.syncMixer) K.syncMixer(); return; }
   $('#edTitle').textContent = (s.video ? 'Klip video ' : 'Adegan ') + (state.scenes.indexOf(s) + 1);
   $('#edDur').value = String(r1(s.dur));
   bodyEl.classList.toggle('is-video', !!s.video);
   $('#vidCtl').hidden = !s.video;
-  if (s.video) { K.renderVideoCtl(s); inner.textContent = ''; insp.textContent = ''; }
+  if (s.video) { K.renderVideoCtl(s); insp.textContent = ''; renderTimeline(); }
   else { updateNarrUI(s); renderTimeline(); renderInspector(); }
   setDisabled(!!state.exporting || rs.active);
   if (rs.active) { $('#recBtn').disabled = true; }
-  K.onPlayState();
+  K.onPlayState(); if (K.syncMixer) K.syncMixer();
 };
 K.focusEditor = function () {
   var ed = $('#editor'), narrow = window.innerWidth < 1100, sc = document.querySelector('.stage-col');
@@ -5227,8 +5464,9 @@ K.newVideoScene = function (file) {
     return seekTo(v, Math.min(0.1, v.duration / 2), 8000).catch(function () {});
   }).then(function () {
     var s = K.newSceneObj();
-    s.video = { el: v, url: url, file: file, name: file.name, srcDur: v.duration, start: 0, fit: 'contain', vol: 100, audio: null, audioState: 'loading', audioP: null, thumb: makeThumb(v), w: v.videoWidth, h: v.videoHeight };
+    s.video = { el: v, url: url, file: file, name: file.name, srcDur: v.duration, start: 0, segs: null, fit: 'contain', vol: 100, audio: null, audioState: 'loading', audioP: null, thumb: makeThumb(v), w: v.videoWidth, h: v.videoHeight };
     s.dur = Math.max(0.5, r1(Math.min(600, v.duration)));
+    s.video.segs = [{ a: 0, b: s.dur }];
     v.addEventListener('seeked', function () { if (!state.playing && !state.exporting) K.render(K.getT()); });
     if (file.size > MAX_DECODE_BYTES) { s.video.audioState = 'big'; }
     else {
@@ -5255,20 +5493,78 @@ K.videoGuard = function (cur) {
   if (cur) { var sc = cur.kind === 'scene' ? cur.s : cur.from; if (sc && sc.video) keep = sc.video.el; }
   allEls().forEach(function (e) { if (e !== keep && !e.paused) { try { e.pause(); } catch (x) {} } });
 };
+/* ---------- potongan (segmen) ----------
+   Klip = daftar potongan [a,b] dari file sumber, diputar berurutan. Durasi adegan = jumlah panjang potongan. */
+var MINSEG = 0.2;
+function segsOf(s) {
+  var v = s.video;
+  if (!v.segs || !v.segs.length) v.segs = [{ a: v.start || 0, b: Math.min(v.srcDur, (v.start || 0) + s.dur) }];
+  return v.segs;
+}
+function segTotal(segs) { var t = 0; segs.forEach(function (g) { t += g.b - g.a; }); return t; }
+K.vidSegs = segsOf;
+/* waktu lokal adegan -> { src, i, t0 } */
+K.vidMap = function (s, lt) {
+  var segs = segsOf(s), t0 = 0;
+  for (var i = 0; i < segs.length; i++) {
+    var len = segs[i].b - segs[i].a;
+    if (lt < t0 + len || i === segs.length - 1) { var o = Math.max(0, Math.min(lt - t0, len)); return { src: segs[i].a + o, i: i, t0: t0, o: o }; }
+    t0 += len;
+  }
+  return { src: 0, i: 0, t0: 0, o: 0 };
+};
+K.vidSegStart = function (s, i) { var segs = segsOf(s), t = 0; for (var k = 0; k < i; k++) t += segs[k].b - segs[k].a; return t; };
+/* sinkronkan durasi adegan dengan jumlah potongan */
+function fixDur(s) {
+  var segs = segsOf(s);
+  s.dur = Math.max(0.2, Math.round(segTotal(segs) * 100) / 100);
+  s.video.start = segs[0].a;
+}
+K.vidFixDur = fixDur;
+/* ubah durasi total dengan memotong / memperpanjang ujung terakhir */
+K.vidSetDur = function (s, d) {
+  var v = s.video, segs = segsOf(s); d = Math.max(0.5, d);
+  var tot = segTotal(segs);
+  if (d < tot) {
+    var cut = tot - d;
+    while (cut > 1e-6 && segs.length) {
+      var g = segs[segs.length - 1], len = g.b - g.a;
+      if (len - cut >= MINSEG || segs.length === 1) { g.b = Math.max(g.a + MINSEG, g.b - cut); cut = 0; }
+      else { segs.pop(); cut -= len; }
+    }
+  } else if (d > tot) {
+    var last = segs[segs.length - 1]; last.b = Math.min(v.srcDur, last.b + (d - tot));
+  }
+  fixDur(s);
+};
+
+/* ---------- gambar & sinkronisasi ---------- */
+function allEls() { return state.scenes.filter(function (s) { return s.video; }).map(function (s) { return s.video.el; }); }
+K.pauseVideos = function () { allEls().forEach(function (e) { try { if (!e.paused) e.pause(); } catch (x) {} }); };
+/* pastikan hanya video milik adegan yang sedang tampil yang berjalan */
+K.videoGuard = function (cur) {
+  var keep = null;
+  if (cur) { var sc = cur.kind === 'scene' ? cur.s : cur.from; if (sc && sc.video) keep = sc.video.el; }
+  allEls().forEach(function (e) { if (e !== keep && !e.paused) { try { e.pause(); } catch (x) {} } });
+};
 function sync(s, lt) {
-  var v = s.video, e = v.el, endAt = v.start + s.dur;
+  var v = s.video, e = v.el, segs = segsOf(s);
   if (state.exporting && !state.playing) return;     /* ekspor offline: dikendalikan prepFrame */
   if (lt >= s.dur - 0.02) {                          /* diam di frame terakhir (mis. saat transisi) */
     if (!e.paused) e.pause();
+    var endAt = segs[segs.length - 1].b;
     var last = Math.max(0, Math.min(endAt, e.duration || endAt) - 0.04);
     if (Math.abs(e.currentTime - last) > 0.05) { try { e.currentTime = last; } catch (x) {} }
+    v._pi = -1;
     return;
   }
-  var target = v.start + lt;
+  var m = K.vidMap(s, lt), target = m.src;
   if (state.playing) {
-    if (e.paused) { try { e.currentTime = target; } catch (x) {} var p = e.play(); if (p && p.catch) p.catch(function () {}); }
+    if (e.paused) { try { e.currentTime = target; } catch (x) {} v._pi = m.i; var p = e.play(); if (p && p.catch) p.catch(function () {}); }
+    else if (v._pi !== m.i) { v._pi = m.i; try { e.currentTime = target; } catch (x) {} }   /* pindah potongan: loncat */
     else if (Math.abs(e.currentTime - target) > 0.3) { try { e.currentTime = target; } catch (x) {} }
   } else {
+    v._pi = -1;
     if (!e.paused) e.pause();
     if (Math.abs(e.currentTime - target) > 0.03) { try { e.currentTime = target; } catch (x) {} }
   }
@@ -5292,7 +5588,7 @@ K.prepFrame = async function (t) {
   var s = e.kind === 'scene' ? e.s : e.from; if (!s || !s.video) return;
   var lt = e.kind === 'scene' ? clamp(t - e.start, 0, s.dur) : s.dur;
   var v = s.video;
-  var target = v.start + Math.min(lt, Math.max(0, s.dur - 0.04));
+  var target = K.vidMap(s, Math.min(lt, Math.max(0, s.dur - 0.04))).src;
   try { if (!v.el.paused) v.el.pause(); await seekTo(v.el, target, 10000); } catch (x) {}
   await new Promise(function (r) { setTimeout(r, 0); });
 };
@@ -5316,29 +5612,243 @@ $('#vidInput').addEventListener('change', function (e) {
   });
 });
 
+/* ---------- timeline potongan ---------- */
+ui.vseg = 0;
+var TILE = 80;
+function r2(x) { return Math.round(x * 100) / 100; }
+var innerEl = $('#tlInner');
+
+/* kumpulan frame kecil dari file sumber, dibuat di latar belakang lewat elemen video tersendiri */
+function ensureStrip(s) {
+  var v = s.video; if (v.strip || v.stripP) return;
+  v.stripP = (async function () {
+    var e = document.createElement('video');
+    e.muted = true; e.preload = 'auto'; e.playsInline = true; e.setAttribute('playsinline', ''); e.src = v.url;
+    await waitEvent(e, 'loadeddata', 'error', 20000);
+    var n = Math.max(4, Math.min(40, Math.ceil(v.srcDur / 2))), arr = [], i;
+    var c = document.createElement('canvas'); c.width = 96; c.height = 54; var g = c.getContext('2d');
+    for (i = 0; i < n; i++) {
+      var t = (i + 0.5) * v.srcDur / n;
+      try { await seekTo(e, t, 8000); } catch (x) { break; }
+      g.fillStyle = '#000'; g.fillRect(0, 0, 96, 54);
+      var sc = Math.max(96 / e.videoWidth, 54 / e.videoHeight), w = e.videoWidth * sc, h = e.videoHeight * sc;
+      g.drawImage(e, (96 - w) / 2, (54 - h) / 2, w, h);
+      arr.push(c.toDataURL('image/jpeg', 0.6));
+    }
+    try { e.removeAttribute('src'); e.load(); } catch (x) {}
+    if (arr.length) v.strip = arr;
+    if (v.strip && K.selScene() === s && K.renderTimeline && !ui.vdrag) K.renderTimeline();
+  })().catch(function () {});
+}
+function stripImg(v, srcT) {
+  if (!v.strip) return v.thumb || '';
+  var n = v.strip.length, i = Math.max(0, Math.min(n - 1, Math.floor(srcT / v.srcDur * n)));
+  return v.strip[i];
+}
+/* puncak amplitudo per 10 ms dari suara klip */
+function pkOf(v) {
+  if (v.pk) return v.pk; if (!v.audio) return null;
+  var b = v.audio.getChannelData(0), per = Math.max(1, Math.floor(v.audio.sampleRate / 100)), n = Math.ceil(b.length / per), p = new Float32Array(n), mx = 0;
+  for (var i = 0; i < n; i++) {
+    var m = 0, e = Math.min(b.length, (i + 1) * per), st = Math.max(1, (per >> 3));
+    for (var j = i * per; j < e; j += st) { var a = b[j] < 0 ? -b[j] : b[j]; if (a > m) m = a; }
+    p[i] = m; if (m > mx) mx = m;
+  }
+  v.pk = { p: p, max: mx || 1 };
+  return v.pk;
+}
+/* gelombang suara klip, mengikuti urutan potongan */
+K.vidDrawWave = function (s, host, pps, h) {
+  var v = s.video, P = pkOf(v);
+  if (!P) { host.appendChild(el('div', 'nowave', v.audioState === 'loading' ? 'Suara klip sedang dibaca…' : 'Klip ini tanpa suara yang bisa dibaca.')); return; }
+  var wpx = Math.max(2, Math.ceil(s.dur * pps)), dpr = Math.min(window.devicePixelRatio || 1, 16000 / wpx, 2);
+  var c = document.createElement('canvas'); c.width = Math.round(wpx * dpr); c.height = Math.round(h * dpr);
+  c.style.width = wpx + 'px'; c.style.height = h + 'px';
+  var g = c.getContext('2d'); g.scale(dpr, dpr);
+  g.fillStyle = (getComputedStyle(document.documentElement).getPropertyValue('--good') || '#2f9e6e').trim(); g.globalAlpha = 0.65;
+  var gain = Math.min(8, 0.95 / P.max), t0 = 0;
+  segsOf(s).forEach(function (sg) {
+    var x0 = t0 * pps, x1 = (t0 + sg.b - sg.a) * pps;
+    for (var x = Math.floor(x0); x < x1; x++) {
+      var a = Math.floor((sg.a + (x - x0) / pps) * 100), b = Math.max(a + 1, Math.floor((sg.a + (x + 1 - x0) / pps) * 100)), m = 0;
+      for (var i = a; i < b && i < P.p.length; i++) if (P.p[i] > m) m = P.p[i];
+      var hh = Math.max(1, m * gain * (h - 8));
+      g.fillRect(x, (h - hh) / 2, 1, hh);
+    }
+    t0 += sg.b - sg.a;
+  });
+  host.appendChild(c);
+};
+/* baris bar potongan */
+K.vidBuildRow = function (s, row, pps) {
+  var v = s.video, segs = segsOf(s), t0 = 0;
+  ensureStrip(s);
+  if (ui.vseg >= segs.length) ui.vseg = segs.length - 1;
+  if (ui.vseg < 0) ui.vseg = 0;
+  segs.forEach(function (sg, i) {
+    var len = sg.b - sg.a, w = Math.max(10, len * pps);
+    var b = el('div', 'vseg' + (i === ui.vseg ? ' sel' : '')); b.dataset.i = String(i);
+    b.style.left = (t0 * pps) + 'px'; b.style.width = w + 'px';
+    b.title = 'Potongan ' + (i + 1) + ': ' + r2(sg.a).toFixed(1) + '–' + r2(sg.b).toFixed(1) + ' dtk dari klip asli';
+    var tiles = el('div', 'vt');
+    for (var j = 0, nT = Math.ceil(w / TILE); j < nT; j++) {
+      var im = document.createElement('img'); im.alt = ''; im.draggable = false;
+      im.src = stripImg(v, Math.min(sg.b, sg.a + ((j + 0.5) * TILE) / pps));
+      im.style.left = (j * TILE) + 'px'; im.style.width = TILE + 'px';
+      tiles.appendChild(im);
+    }
+    b.appendChild(tiles);
+    b.appendChild(el('span', 'vl', (i + 1) + ' · ' + r2(len).toFixed(1) + ' dtk'));
+    b.appendChild(el('span', 'h l')); b.appendChild(el('span', 'h r'));
+    row.appendChild(b);
+    t0 += len;
+  });
+};
+
+/* ---------- operasi potong ---------- */
+function curVideo() { var s = K.selScene(); return s && s.video ? s : null; }
+function snap(s) { var v = s.video; (v.hist = v.hist || []).push(JSON.stringify(segsOf(s))); if (v.hist.length > 50) v.hist.shift(); }
+function headLoc(s) { var e = K.sceneEntry(s); return e ? K.getT() - e.start : null; }
+function commit(s) {
+  var ent0 = K.sceneEntry(s), lt = ent0 ? K.getT() - ent0.start : 0, inside = lt >= 0 && lt <= s.dur;
+  fixDur(s);
+  $('#edDur').value = String(r1(s.dur));
+  K.updateTotals(); K.renderScenes();
+  var ent = K.sceneEntry(s);
+  if (inside && ent) K.setT(ent.start + Math.min(lt, s.dur - 0.001));
+  if (K.renderTimeline) K.renderTimeline();
+  K.render(K.getT()); syncBtns();
+}
+function busy() { return !!state.exporting; }
+function splitNow() {
+  var s = curVideo(); if (!s || busy()) return;
+  if (state.playing) K.pause();
+  var lt = headLoc(s);
+  if (lt == null || lt < 0 || lt > s.dur) { K.setMsg('Geser garis merah ke dalam klip ini dulu (klik penggaris di timeline), lalu tekan Potong.'); return; }
+  var m = K.vidMap(s, lt), segs = segsOf(s), g = segs[m.i];
+  if (m.o < MINSEG || (g.b - g.a) - m.o < MINSEG) { K.setMsg('Garis merah terlalu dekat dengan tepi potongan. Geser sedikit ke tengah.'); return; }
+  snap(s);
+  segs.splice(m.i, 1, { a: g.a, b: r2(g.a + m.o) }, { a: r2(g.a + m.o), b: g.b });
+  ui.vseg = m.i + 1;
+  commit(s); K.setMsg('Klip dipotong di ' + r2(lt).toFixed(1) + ' dtk. Pilih potongan lalu Hapus, Geser, atau tarik tepinya.', 'ok');
+}
+function delSeg() {
+  var s = curVideo(); if (!s || busy()) return;
+  var segs = segsOf(s);
+  if (segs.length < 2) { K.setMsg('Ini satu-satunya potongan. Potong dulu, atau hapus seluruh adegan lewat tombol Hapus adegan.'); return; }
+  if (state.playing) K.pause();
+  snap(s); segs.splice(ui.vseg, 1); ui.vseg = Math.min(ui.vseg, segs.length - 1);
+  commit(s); K.setMsg('Potongan dihapus, potongan sesudahnya otomatis menyambung.', 'ok');
+}
+function moveSeg(dir) {
+  var s = curVideo(); if (!s || busy()) return;
+  var segs = segsOf(s), i = ui.vseg, j = i + dir; if (j < 0 || j >= segs.length) return;
+  if (state.playing) K.pause();
+  snap(s); var t = segs[i]; segs[i] = segs[j]; segs[j] = t; ui.vseg = j; commit(s);
+}
+function dupSeg() {
+  var s = curVideo(); if (!s || busy()) return;
+  var segs = segsOf(s), g = segs[ui.vseg]; if (!g) return;
+  if (s.dur + (g.b - g.a) > 600) { K.setMsg('Durasi adegan maksimal 10 menit.', 'err'); return; }
+  snap(s); segs.splice(ui.vseg + 1, 0, { a: g.a, b: g.b }); ui.vseg++; commit(s);
+}
+function resetSegs() {
+  var s = curVideo(); if (!s || busy()) return;
+  if (state.playing) K.pause();
+  snap(s); s.video.segs = [{ a: 0, b: Math.min(s.video.srcDur, 600) }]; ui.vseg = 0; commit(s);
+  K.setMsg('Klip dikembalikan utuh dari awal sampai akhir.', 'ok');
+}
+function undoSeg() {
+  var s = curVideo(); if (!s || busy()) return;
+  var h = s.video.hist; if (!h || !h.length) return;
+  if (state.playing) K.pause();
+  s.video.segs = JSON.parse(h.pop()); ui.vseg = Math.min(ui.vseg, s.video.segs.length - 1); commit(s);
+}
+function syncBtns() {
+  var s = curVideo(); if (!s) return;
+  var n = segsOf(s).length, off = busy();
+  $('#vsSplit').disabled = off; $('#vsDel').disabled = off || n < 2;
+  $('#vsL').disabled = off || ui.vseg <= 0; $('#vsR').disabled = off || ui.vseg >= n - 1;
+  $('#vsDup').disabled = off; $('#vsReset').disabled = off;
+  $('#vsUndo').disabled = off || !(s.video.hist && s.video.hist.length);
+}
+K.vidSyncBtns = syncBtns;
+$('#vsSplit').addEventListener('click', splitNow);
+$('#vsDel').addEventListener('click', delSeg);
+$('#vsL').addEventListener('click', function () { moveSeg(-1); });
+$('#vsR').addEventListener('click', function () { moveSeg(1); });
+$('#vsDup').addEventListener('click', dupSeg);
+$('#vsReset').addEventListener('click', resetSegs);
+$('#vsUndo').addEventListener('click', undoSeg);
+document.addEventListener('keydown', function (e) {
+  if (e.ctrlKey || e.metaKey || e.altKey || e.target.closest('input,textarea,select,[contenteditable]')) return;
+  if (e.key === 's' || e.key === 'S') { if (curVideo() && !$('#dockScene').hidden) { e.preventDefault(); splitNow(); } }
+});
+
+/* ---------- seret tepi / urutan potongan ---------- */
+var swallow = false;
+innerEl.addEventListener('click', function (e) { if (swallow) { swallow = false; e.stopImmediatePropagation(); e.preventDefault(); } }, true);
+innerEl.addEventListener('pointerdown', function (e) {
+  var s = curVideo(), bar = e.target.closest('.vseg'); if (!s || !bar || busy() || e.button > 0) return;
+  var i = parseInt(bar.dataset.i, 10), segs = segsOf(s), g = segs[i]; if (!g) return;
+  if (state.playing) K.pause();
+  ui.vseg = i;
+  innerEl.querySelectorAll('.vseg').forEach(function (b) { b.classList.toggle('sel', b === bar); });
+  syncBtns();
+  var mode = e.target.classList.contains('h') ? (e.target.classList.contains('l') ? 'l' : 'r') : 'move';
+  var pps = K.tlPps();
+  var x0 = e.clientX, a0 = g.a, b0 = g.b, moved = false, hist0 = JSON.stringify(segs), raf = 0, dx = 0;
+  var left0 = parseFloat(bar.style.left), w0 = parseFloat(bar.style.width);
+  e.preventDefault();
+  ui.vdrag = true; K.ppsLock = pps;   /* skala tetap selama menyeret */
+  function mv(ev) {
+    dx = ev.clientX - x0;
+    if (!moved && Math.abs(dx) < 4) return;
+    moved = true;
+    if (mode === 'move') { bar.style.transform = 'translateX(' + dx + 'px)'; bar.style.zIndex = 8; bar.style.opacity = '.85'; return; }
+    var dt = dx / pps;
+    if (mode === 'l') g.a = r2(Math.max(0, Math.min(a0 + dt, g.b - MINSEG)));
+    else g.b = r2(Math.min(s.video.srcDur, Math.max(b0 + dt, g.a + MINSEG)));
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(function () {
+      fixDur(s); K.updateTotals();
+      if (K.renderTimeline) K.renderTimeline();
+      var ent = K.sceneEntry(s);
+      if (ent) { var st = K.vidSegStart(s, i); K.setT(ent.start + (mode === 'l' ? st + 0.01 : Math.max(st, st + (g.b - g.a) - 0.06))); }
+      K.render(K.getT());
+    });
+  }
+  function up() {
+    document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up); document.removeEventListener('pointercancel', up);
+    cancelAnimationFrame(raf); ui.vdrag = false; K.ppsLock = 0;
+    if (!moved) return;
+    swallow = true; setTimeout(function () { swallow = false; }, 60);
+    if (mode === 'move') {
+      var ctr = left0 + dx + w0 / 2, ni = 0;
+      segs.forEach(function (_, k) { if (k === i) return; var bk = innerEl.querySelector('.vseg[data-i="' + k + '"]'); if (bk && parseFloat(bk.style.left) + parseFloat(bk.style.width) / 2 < ctr) ni++; });
+      bar.style.transform = ''; bar.style.zIndex = ''; bar.style.opacity = '';
+      if (ni !== i) { snap(s); var it = segs.splice(i, 1)[0]; segs.splice(ni, 0, it); ui.vseg = ni; }
+      commit(s);
+    } else {
+      if (g.a !== a0 || g.b !== b0) { (s.video.hist = s.video.hist || []).push(hist0); if (s.video.hist.length > 50) s.video.hist.shift(); }
+      commit(s);
+    }
+  }
+  document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up); document.addEventListener('pointercancel', up);
+});
+
 /* ---------- panel kontrol di editor ---------- */
 var AUD_TXT = { loading: 'Suara klip sedang dibaca…', ready: 'Suara klip ikut tampil di video.', none: 'Klip ini tidak punya suara yang bisa dibaca (atau formatnya tidak didukung browser). Video tetap tampil tanpa suara.', big: 'Klip terlalu besar untuk diambil suaranya di browser, jadi dipakai tanpa suara.' };
 K.renderVideoCtl = function (s) {
   var v = s.video;
-  $('#vidInfo').textContent = v.name + ' · ' + v.w + '×' + v.h + ' · panjang asli ' + r1(v.srcDur).toFixed(1) + ' dtk';
-  $('#vidStart').value = String(r1(v.start)); $('#vidStart').max = String(r1(Math.max(0, v.srcDur - 0.5)));
+  $('#vidInfo').textContent = v.name + ' · ' + v.w + '×' + v.h + ' · panjang asli ' + r1(v.srcDur).toFixed(1) + ' dtk · ' + segsOf(s).length + ' potongan';
   $('#vidFit').value = v.fit;
   $('#vidVol').value = String(v.vol); $('#vidVolLbl').textContent = v.vol + '%';
   $('#vidAudioHint').textContent = AUD_TXT[v.audioState] || '';
-  ['vidStart', 'vidFit', 'vidVol'].forEach(function (id) { $('#' + id).disabled = !!state.exporting; });
+  ['vidFit', 'vidVol'].forEach(function (id) { $('#' + id).disabled = !!state.exporting; });
+  syncBtns();
 };
-function curVideo() { var s = K.selScene(); return s && s.video ? s : null; }
-$('#vidStart').addEventListener('change', function () {
-  var s = curVideo(); if (!s) return;
-  var v = s.video, val = parseFloat(this.value);
-  if (isNaN(val)) { this.value = String(r1(v.start)); return; }
-  v.start = clamp(r1(val), 0, Math.max(0, v.srcDur - 0.5));
-  s.dur = Math.max(0.5, Math.min(s.dur, r1(v.srcDur - v.start)));
-  K.setT(Math.min(K.getT(), K.total()));
-  K.updateTotals(); K.renderScenes(); K.renderEditor(); K.render(K.getT());
-});
 $('#vidFit').addEventListener('change', function () { var s = curVideo(); if (s) { s.video.fit = this.value; K.render(K.getT()); } });
-$('#vidVol').addEventListener('input', function () { var s = curVideo(); if (s) { s.video.vol = parseInt(this.value, 10); $('#vidVolLbl').textContent = s.video.vol + '%'; } });
 })();
 
 (function () {
@@ -5347,7 +5857,7 @@ $('#vidVol').addEventListener('input', function () { var s = curVideo(); if (s) 
 var K = window.__coretan, $ = K.$, state = K.state, ui = K.ui, el = K.el;
 var BASE = 'https://generativelanguage.googleapis.com/v1beta';
 var DEFAULT_MODEL = 'gemini-2.5-flash-image';
-var LS_KEY = 'coretan.gemini.key', LS_MODEL = 'coretan.gemini.model';
+var LS_KEY = 'coretan.gemini.key', LS_MODEL = 'coretan.gemini.model', LS_MODE = 'coretan.gemini.mode';
 
 var STYLES = {
   sketch: { label: 'Garis hitam putih (paling cocok untuk efek sketsa)', pre: 'A simple hand-drawn doodle illustration in clean black ink outlines with a few flat accent colors, on a pure plain white background. No text unless asked, no shadows, no scenery or frame. Subject: ' },
@@ -5536,10 +6046,12 @@ function open(target) {
   $('#aiSticker').checked = target === 'sticker';
   $('#aiNeedKey').hidden = !!apiKey();
   resetPreview(); say('');
+  applyMode(lsGet(LS_MODE) || (apiKey() ? 'api' : 'chat'));
   modal.hidden = false; document.body.classList.add('modal-open');
-  setTimeout(function () { (apiKey() ? $('#aiPrompt') : $('#aiKey')).focus(); }, 30);
+  setTimeout(function () { (mode === 'chat' || apiKey() ? $('#aiPrompt') : $('#aiKey')).focus(); }, 30);
 }
 function close() {
+  chatScene = null; addedCount = 0;
   if (running && abortCtl) abortCtl.abort();
   modal.hidden = true; document.body.classList.remove('modal-open');
   if (lastFocus && lastFocus.focus) { try { lastFocus.focus(); } catch (e) {} }
@@ -5570,6 +6082,106 @@ $('#aiForget').addEventListener('click', function () { $('#aiKey').value = ''; $
   var b = $('#' + id); if (!b) return;
   b.addEventListener('click', function () { open(id === 'aiScene' ? K.aiAutoTarget() : id === 'edAI' ? 'item' : 'sticker'); });
 });
+
+/* ---------- mode chat Gemini (tanpa API): salin prompt, tempel gambar hasilnya ---------- */
+var mode = 'chat', addedCount = 0;
+function applyMode(m) {
+  mode = m === 'api' ? 'api' : 'chat';
+  $('#aiModeChat').setAttribute('aria-selected', mode === 'chat' ? 'true' : 'false');
+  $('#aiModeApi').setAttribute('aria-selected', mode === 'api' ? 'true' : 'false');
+  $('#aiChatBox').hidden = mode !== 'chat';
+  $('#aiApiActions').hidden = mode !== 'api'; $('#aiKeyBox').hidden = mode !== 'api';
+  if (mode === 'chat') { $('#aiPrev').hidden = true; renderLines(); } else if (pending) $('#aiPrev').hidden = false;
+  say('');
+}
+$('#aiModeChat').addEventListener('click', function () { lsSet(LS_MODE, 'chat'); applyMode('chat'); });
+$('#aiModeApi').addEventListener('click', function () { lsSet(LS_MODE, 'api'); applyMode('api'); });
+
+var doneLines = {};
+function promptLines() { return $('#aiPrompt').value.split(/\n+/).map(function (x) { return x.trim(); }).filter(Boolean); }
+function renderLines() {
+  var box = $('#aiLines'), lines = promptLines(), target = $('#aiTarget').value;
+  box.textContent = '';
+  if (!lines.length) { box.appendChild(el('p', 'hint', 'Tulis prompt di kolom di atas, satu baris untuk satu gambar. Barisnya muncul di sini dengan tombol Salin.')); return; }
+  lines.forEach(function (ln, i) {
+    var row = el('div', 'ailn' + (doneLines[ln] ? ' done' : '')), full = composedPrompt(ln, target);
+    row.appendChild(el('span', 'no', String(i + 1)));
+    var tx = el('span', 'tx', ln); tx.title = full; row.appendChild(tx);
+    var b = el('button', 'btn small', doneLines[ln] ? 'Salin lagi' : 'Salin'); b.type = 'button';
+    b.addEventListener('click', function () { doneLines[ln] = true; copyText(full).then(function (ok) { say(ok ? 'Prompt ' + (i + 1) + ' disalin. Buka Gemini, tempel (Ctrl+V), kirim, lalu salin gambar hasilnya dan tempel di kotak bawah.' : 'Penyalinan otomatis diblokir browser. Salin manual teks ini: ' + full, ok ? 'ok' : 'err'); renderLines(); }); });
+    row.appendChild(b); box.appendChild(row);
+  });
+}
+function copyText(t) {
+  function legacy() {
+    try {
+      var ta = document.createElement('textarea'); ta.value = t; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;left:-9999px;top:0';
+      document.body.appendChild(ta); ta.select(); var ok = document.execCommand('copy'); document.body.removeChild(ta); return ok;
+    } catch (e) { return false; }
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(t).then(function () { return true; }, function () { return legacy(); });
+  return Promise.resolve(legacy());
+}
+$('#aiPrompt').addEventListener('input', function () { if (mode === 'chat') renderLines(); });
+$('#aiTarget').addEventListener('change', function () { if (mode === 'chat') renderLines(); });
+$('#aiCopyAll').addEventListener('click', function () {
+  var lines = promptLines(), target = $('#aiTarget').value;
+  if (!lines.length) { say('Tulis prompt dulu.', 'err'); return; }
+  var txt = lines.length === 1 ? composedPrompt(lines[0], target)
+    : 'Buat ' + lines.length + ' gambar terpisah, SATU gambar untuk setiap nomor di bawah, jangan digabung dalam satu gambar. Buat satu per satu. Gayanya sama untuk semuanya.\n' + lines.map(function (l, i) { return (i + 1) + '. ' + composedPrompt(l, target); }).join('\n');
+  copyText(txt).then(function (ok) { say(ok ? 'Semua prompt disalin. Buka Gemini lalu tempel.' : 'Penyalinan otomatis diblokir browser. Salin manual dari daftar di atas.', ok ? 'ok' : 'err'); });
+});
+
+/* gambar masuk dari tempel / seret / pilih file */
+var importing = false;
+async function importFiles(files) {
+  files = files.filter(function (f) { return f && /^image\//.test(f.type); });
+  if (!files.length || importing) return;
+  importing = true;
+  var target = $('#aiTarget').value, sticker = $('#aiSticker').checked, okN = 0;
+  try {
+    K.stop(false);
+    if (target === 'sticker') {
+      for (var i = 0; i < files.length; i++) { await place(files[i], files[i].name || ('gemini-' + (addedCount + okN + 1) + '.png'), 'sticker', sticker); okN++; }
+    } else if (target === 'item' && K.selScene() && !K.selScene().video) {
+      var s0 = K.selScene(), items = [];
+      for (var j = 0; j < files.length; j++) { var it = await K.newImageItem(URL.createObjectURL(files[j]), files[j].name || ('gemini-' + (addedCount + j + 1) + '.png'), 'main'); if (it) items.push(it); }
+      if (items.length) { K.addItems(s0, items, 'draw'); okN = items.length; }
+    } else {
+      /* semua gambar yang masuk sekaligus jadi satu adegan baru; tempel berikutnya menambah ke adegan itu */
+      var items2 = [];
+      for (var q = 0; q < files.length; q++) { var it2 = await K.newImageItem(URL.createObjectURL(files[q]), files[q].name || ('gemini-' + (addedCount + q + 1) + '.png'), 'main'); if (it2) items2.push(it2); }
+      if (items2.length) {
+        var cur = K.selScene();
+        if (chatScene && state.scenes.indexOf(chatScene) >= 0) { K.addItems(chatScene, items2, 'draw'); }
+        else { chatScene = K.newSceneObj(); K.insertScenes([chatScene], cur ? cur.id : null); K.addItems(chatScene, items2, 'draw'); }
+        okN = items2.length;
+      }
+    }
+  } catch (e) { say(e.message || 'Gambar tidak bisa dibuka.', 'err'); }
+  importing = false;
+  if (okN) {
+    addedCount += okN;
+    say(okN + ' gambar ditambahkan (' + addedCount + ' total sesi ini). Lanjut: salin prompt berikutnya, atau tekan × untuk selesai.', 'ok');
+    K.setMsg(okN + ' gambar dari Gemini ditambahkan.', 'ok');
+  } else say('Itu bukan gambar yang bisa dibuka. Salin gambarnya (klik kanan → Salin gambar) lalu tekan Ctrl+V di sini.', 'err');
+}
+var chatScene = null;
+document.addEventListener('paste', function (e) {
+  if (modal.hidden || mode !== 'chat') return;
+  var cd = e.clipboardData; if (!cd) return;
+  var files = Array.prototype.slice.call(cd.files || []).filter(function (f) { return /^image\//.test(f.type); });
+  if (!files.length && cd.items) Array.prototype.forEach.call(cd.items, function (it) { if (it.kind === 'file' && /^image\//.test(it.type)) { var f = it.getAsFile(); if (f) files.push(f); } });
+  if (!files.length) return;
+  e.preventDefault(); importFiles(files);
+});
+var drop = $('#aiDrop');
+['dragenter', 'dragover'].forEach(function (n) { drop.addEventListener(n, function (e) { e.preventDefault(); drop.classList.add('over'); }); });
+['dragleave', 'drop'].forEach(function (n) { drop.addEventListener(n, function (e) { e.preventDefault(); drop.classList.remove('over'); }); });
+drop.addEventListener('drop', function (e) { importFiles(Array.prototype.slice.call((e.dataTransfer && e.dataTransfer.files) || [])); });
+drop.addEventListener('click', function (e) { if (e.target.id !== 'aiPick') $('#aiFiles').click(); });
+$('#aiPick').addEventListener('click', function (e) { e.stopPropagation(); $('#aiFiles').click(); });
+$('#aiFiles').addEventListener('change', function (e) { var f = Array.prototype.slice.call(e.target.files || []); e.target.value = ''; importFiles(f); });
 })();
 
 (function () {
@@ -5580,10 +6192,11 @@ var DESK = window.matchMedia('(min-width:1100px)');
 K.isDesk = function () { return DESK.matches; };
 
 /* ---- tab panel kanan ---- */
-var PANES = { props: 'paneProps', set: 'paneSet', exp: 'paneExp' }, TABS = { props: 'tabProps', set: 'tabSet', exp: 'tabExp' };
+var PANES = { props: 'paneProps', aud: 'paneAud', set: 'paneSet', exp: 'paneExp' }, TABS = { props: 'tabProps', aud: 'tabAud', set: 'tabSet', exp: 'tabExp' };
 K.showPane = function (name) {
   Object.keys(PANES).forEach(function (k) {
-    $('#' + PANES[k]).classList.toggle('off', k !== name);
+    var pn = $('#' + PANES[k]); if (k === name && pn.classList.contains('off')) pn.scrollTop = 0;
+    pn.classList.toggle('off', k !== name);
     $('#' + TABS[k]).setAttribute('aria-selected', k === name ? 'true' : 'false');
   });
 };
@@ -5654,6 +6267,50 @@ if (DESK.addEventListener) DESK.addEventListener('change', function () { K.syncP
   if (DESK.addEventListener) DESK.addEventListener('change', place);
 })();
 K.showPane('props'); K.showDock('scene');
+})();
+
+(function () {
+'use strict';
+/* Mixer volume: pengatur semua narasi / semua klip / musik latar, dan volume per adegan. */
+var K = window.__coretan, $ = K.$, state = K.state, ui = K.ui;
+function pct(id, v) { var e = $('#' + id); if (e) e.textContent = v + '%'; }
+function live() { if (K.applyVolumes) K.applyVolumes(); }
+$('#setNarr').addEventListener('input', function (e) { state.set.narrVol = parseInt(e.target.value, 10); pct('narrLbl', state.set.narrVol); live(); });
+$('#setClip').addEventListener('input', function (e) { state.set.clipVol = parseInt(e.target.value, 10); pct('clipLbl', state.set.clipVol); live(); });
+$('#setBgm').addEventListener('input', function (e) { state.set.bgmVol = parseInt(e.target.value, 10); pct('bgmLbl', state.set.bgmVol); live(); });
+$('#setDuck').addEventListener('change', function (e) {
+  state.set.duck = !!e.target.checked;
+  if (state.playing && !state.exporting) K.setMsg('Pengaturan ini berlaku mulai pemutaran berikutnya.');
+});
+
+function getVol(s) { return s.video ? (s.video.vol == null ? 100 : s.video.vol) : (s.vol == null ? 100 : s.vol); }
+function setVol(s, v) { if (s.video) s.video.vol = v; else s.vol = v; K.syncMixer(); live(); }
+function onSlide(e) { var s = K.selScene(); if (s) setVol(s, parseInt(e.target.value, 10)); }
+$('#mixScene').addEventListener('input', onSlide);
+$('#narrSceneVol').addEventListener('input', onSlide);
+$('#vidVol').addEventListener('input', onSlide);
+
+/* samakan semua kontrol dengan adegan terpilih */
+K.syncMixer = function () {
+  var s = K.selScene(), idx = s ? state.scenes.indexOf(s) + 1 : 0;
+  var ms = $('#mixScene');
+  if (!s) {
+    $('#mixSceneTitle').textContent = 'Adegan terpilih'; $('#mixSceneName').textContent = 'Pilih adegan dulu'; ms.disabled = true;
+    $('#mixSceneLbl').textContent = '—'; return;
+  }
+  var v = getVol(s);
+  $('#mixSceneTitle').textContent = (s.video ? 'Klip video ' : 'Adegan ') + idx;
+  $('#mixSceneName').textContent = s.video ? 'Suara klip ini' : 'Narasi adegan ini';
+  ms.value = String(v); pct('mixSceneLbl', v); ms.disabled = !!state.exporting;
+  if (s.video) { $('#vidVol').value = String(v); pct('vidVolLbl', v); }
+  else {
+    $('#narrVolRow').hidden = !s.audio; $('#narrSceneVol').value = String(v); pct('narrSceneLbl', v);
+    $('#narrSceneVol').disabled = !!state.exporting;
+  }
+  $('#mixSceneHint').textContent = s.video
+    ? (s.video.audio ? 'Volume khusus klip ini, dikali dengan pengatur “semua klip” di atas.' : 'Klip ini tidak punya suara yang bisa dibaca, jadi tidak ada yang diatur.')
+    : (s.audio ? 'Volume khusus adegan ini, dikali dengan pengatur “semua adegan” di atas. Berguna bila satu rekaman terlalu pelan atau keras dibanding yang lain.' : 'Adegan ini belum punya narasi. Rekam atau unggah dulu di tab Properti.');
+};
 })();
 
 (function () {
@@ -5792,7 +6449,7 @@ function describe() {
     var sd = { items: [] };
     for (k in s) if (!SKIP_SCENE[k] && typeof s[k] !== 'object' && typeof s[k] !== 'function') sd[k] = s[k];
     if (s.audio) sd.audio = { name: s.audioName || '', src: s.audioBlob ? refBlob(s.audioBlob, s.audioName) : ref(s.audio, function () { return Promise.resolve(wavBlob(s.audio)); }, s.audioName) };
-    if (s.video) sd.video = { name: s.video.name, start: s.video.start, fit: s.video.fit, vol: s.video.vol, src: refBlob(s.video.file, s.video.name) };
+    if (s.video) sd.video = { name: s.video.name, start: s.video.start, segs: K.vidSegs(s).map(function (g) { return { a: g.a, b: g.b }; }), fit: s.video.fit, vol: s.video.vol, src: refBlob(s.video.file, s.video.name) };
     s.items.forEach(function (it) {
       var d = {};
       for (k in it) if (!SKIP_ITEM[k] && typeof it[k] !== 'object' && typeof it[k] !== 'function') d[k] = it[k];
@@ -5826,13 +6483,65 @@ function deliver(blob, name) {
     return true;
   });
 }
+/* ---------- folder simpan (File System Access API; hanya Chrome/Edge di komputer, bukan di dalam iframe) ---------- */
+var FS_OK = typeof window.showDirectoryPicker === 'function' && window.top === window.self;
+var dirH = null, projName = null, folderBtn = $('#prjFolder');
+function idbOpen() {
+  return new Promise(function (res, rej) {
+    var rq = indexedDB.open('coretan-prj', 1);
+    rq.onupgradeneeded = function () { rq.result.createObjectStore('kv'); };
+    rq.onsuccess = function () { res(rq.result); }; rq.onerror = function () { rej(rq.error); };
+  });
+}
+function idbGet(k) { return idbOpen().then(function (db) { return new Promise(function (res, rej) { var r = db.transaction('kv').objectStore('kv').get(k); r.onsuccess = function () { res(r.result); }; r.onerror = function () { rej(r.error); }; }); }); }
+function idbSet(k, v) { return idbOpen().then(function (db) { return new Promise(function (res, rej) { var t = db.transaction('kv', 'readwrite'); t.objectStore('kv').put(v, k); t.oncomplete = function () { res(); }; t.onerror = function () { rej(t.error); }; }); }); }
+function folderUI() {
+  if (!folderBtn) return;
+  folderBtn.hidden = !FS_OK;
+  folderBtn.textContent = dirH ? '📁 ' + dirH.name : '📁 Pilih folder';
+}
+/* pastikan ada folder + izin tulis. Harus dipanggil langsung dari klik (butuh gestur pengguna). */
+async function ensureDir(pick) {
+  if (!FS_OK) return null;
+  if (!dirH && !pick) return null;   /* belum memilih folder: simpan lewat unduhan biasa */
+  if (dirH && !pick) {
+    var q = 'denied';
+    try { q = await dirH.queryPermission({ mode: 'readwrite' }); if (q !== 'granted') q = await dirH.requestPermission({ mode: 'readwrite' }); } catch (e) {}
+    if (q === 'granted') return dirH;
+  }
+  K.setMsg('Pilih folder tempat proyek disimpan. Pilih subfolder (mis. Documents\\Coretan); Chrome menolak folder Downloads atau Documents langsung.');
+  var h = await window.showDirectoryPicker({ id: 'coretan', mode: 'readwrite' });
+  dirH = h; folderUI();
+  try { await idbSet('dir', h); } catch (e) {}
+  return h;
+}
+if (FS_OK) { idbGet('dir').then(function (h) { if (h) { dirH = h; } folderUI(); }).catch(folderUI); }
+folderUI();
+async function writeToDir(dir, blob, name) {
+  var fh = await dir.getFileHandle(name, { create: true }), w = await fh.createWritable();
+  await w.write(blob); await w.close();
+}
+folderBtn && folderBtn.addEventListener('click', async function () {
+  if (busy || state.exporting) return;
+  try { await ensureDir(true); K.setMsg('Folder simpan: ' + dirH.name + '. Tombol Simpan proyek sekarang langsung menulis ke sana.', 'ok'); }
+  catch (e) { if (!e || e.name !== 'AbortError') { FS_OK = false; folderUI(); K.setMsg('Browser ini tidak mengizinkan memilih folder. Proyek akan tersimpan lewat unduhan biasa.', 'err'); } }
+});
+
+var opening = false, clearAll0 = K.clearAll;
+K.clearAll = function () { if (!opening) projName = null; return clearAll0.apply(this, arguments); };   /* proyek baru tidak boleh menimpa file proyek lama */
 var busy = false;
-function setBusy(on) { busy = on; ['prjSave', 'prjOpen'].forEach(function (id) { var b = $('#' + id); if (b) b.disabled = on || !!state.exporting; }); }
+function setBusy(on) { busy = on; ['prjSave', 'prjOpen', 'prjFolder'].forEach(function (id) { var b = $('#' + id); if (b) b.disabled = on || !!state.exporting; }); }
 K.syncProjectBtns = function () { setBusy(busy); };
-async function save() {
+async function save(ev) {
   if (busy || state.exporting) return;
   var d = describe();
   if (!hasContent(d)) { K.setMsg('Belum ada isi untuk disimpan. Tambahkan adegan atau stiker dulu.', 'err'); return; }
+  var dir = null;
+  try { dir = await ensureDir(false); }
+  catch (e) {
+    if (e && e.name === 'AbortError') { K.setMsg('Penyimpanan dibatalkan.'); return; }
+    FS_OK = false; folderUI(); dir = null;
+  }
   setBusy(true); K.stop(false);
   try {
     K.setMsg('Menyiapkan file proyek…');
@@ -5844,12 +6553,16 @@ async function save() {
     var hj = new TextEncoder().encode(JSON.stringify(hdr)), len = new Uint8Array(4);
     new DataView(len.buffer).setUint32(0, hj.length, true);
     var out = new Blob([MAGIC, len, hj].concat(blobs), { type: 'application/octet-stream' });
-    var name = 'proyek-coretan-' + fmtDate() + '.coretan';
-    await deliver(out, name);
+    var fresh = !!(ev && ev.shiftKey);
+    var name = (!projName || fresh) ? 'proyek-coretan-' + fmtDate() + '.coretan' : projName;
+    if (dir) await writeToDir(dir, out, name); else await deliver(out, name);
+    projName = name;
     savedFp = d.fp;
-    K.setMsg('Proyek disimpan sebagai ' + name + ' (' + (out.size / 1048576).toFixed(1) + ' MB). Lanjutkan kapan saja lewat tombol Buka proyek.', 'ok');
+    K.setMsg(dir ? 'Proyek disimpan ke folder ' + dir.name + ' sebagai ' + name + ' (' + (out.size / 1048576).toFixed(1) + ' MB). Simpan lagi akan menimpa file ini; tahan Shift saat menekan Simpan untuk membuat salinan baru.'
+      : 'Proyek disimpan sebagai ' + name + ' (' + (out.size / 1048576).toFixed(1) + ' MB). Lanjutkan kapan saja lewat tombol Buka proyek.', 'ok');
   } catch (err) {
     var c = err && err.code;
+    if (err && (err.name === 'NotAllowedError' || err.name === 'NotFoundError' || err.name === 'SecurityError') && dir) { K.setMsg('Folder simpan tidak bisa ditulis (izin ditolak atau folder dipindah). Tekan tombol 📁 untuk memilih folder lagi.', 'err'); setBusy(false); return; }
     K.setMsg(c === 'declined' ? 'Penyimpanan dibatalkan.' : c === 'too_large' ? 'File proyek terlalu besar untuk disimpan dari tampilan ini. Buka versi mandiri di GitHub Pages.' : 'Proyek gagal disimpan. Coba lagi.', 'err');
   }
   setBusy(false);
@@ -5859,7 +6572,7 @@ async function save() {
 var CTRL = [['setRes', 'res', 'change'], ['setFps', 'fps', 'change'], ['setBg', 'bg', 'input'], ['setHand', 'hand', 'change', 1], ['setSpeed', 'speed', 'input'], ['setDetail', 'sketchDetail', 'input'],
   ['setFlow', 'flow', 'change'], ['setTextFont', 'textFont', 'change'], ['setTextColor', 'textColor', 'input'], ['setTool', 'tool', 'change'], ['setSkin', 'skin', 'change'],
   ['trType', 'trType', 'change'], ['trDir', 'trDir', 'change'], ['trSym', 'trSym', 'change'], ['trColor', 'trColor', 'input'], ['trSize', 'trSize', 'input'], ['trDur', 'trDur', 'input'],
-  ['setNarr', 'narrVol', 'input'], ['setDenoise', 'denoise', 'change'], ['setBgm', 'bgmVol', 'input']];
+  ['setNarr', 'narrVol', 'input'], ['setClip', 'clipVol', 'input'], ['setDenoise', 'denoise', 'change'], ['setBgm', 'bgmVol', 'input'], ['setDuck', 'duck', 'change', 1]];
 function applySettings(set) {
   var k; for (k in set) state.set[k] = set[k];
   CTRL.forEach(function (c) {
@@ -5883,7 +6596,7 @@ async function readProject(file) {
 async function openProject(file) {
   if (busy || state.exporting || !file) return;
   setBusy(true); K.stop(false);
-  var missing = 0;
+  var missing = 0; opening = true;
   try {
     K.setMsg('Membaca file proyek…');
     var P = await readProject(file), h = P.h, B = P.blobs, scenes = [], stickers = [], i, j;
@@ -5895,8 +6608,10 @@ async function openProject(file) {
         s = await K.newVideoScene(new File([vb], sd.video.name || 'klip.mp4', { type: vb.type || 'video/mp4' }));
         if (!s) { missing++; continue; }
         s.video.start = sd.video.start; s.video.fit = sd.video.fit; s.video.vol = sd.video.vol;
+        s.video.segs = sd.video.segs && sd.video.segs.length ? sd.video.segs.map(function (g) { return { a: g.a, b: g.b }; }) : [{ a: sd.video.start || 0, b: (sd.video.start || 0) + (sd.dur || s.dur) }];
       } else s = K.newSceneObj();
       copyInto(s, sd, { items: 1, audio: 1, video: 1 });
+      if (s.video) K.vidFixDur(s);
       for (j = 0; j < sd.items.length; j++) {
         var d = sd.items[j], it;
         if (d.kind === 'image') {
@@ -5949,6 +6664,7 @@ async function openProject(file) {
   } catch (err) {
     K.setMsg('Proyek tidak bisa dibuka: ' + (err && err.message ? err.message : 'file rusak') + '.', 'err');
   }
+  opening = false;
   setBusy(false);
 }
 
@@ -5963,9 +6679,16 @@ openBtn.addEventListener('click', function () {
     K.setMsg('Pekerjaan sekarang belum disimpan dan akan diganti. Tekan Simpan proyek dulu, atau tekan Buka proyek sekali lagi untuk lanjut.', 'err');
     armT = setTimeout(disarm, 6000); return;
   }
-  disarm(); $('#prjInput').click();
+  disarm();
+  if (FS_OK && dirH && typeof window.showOpenFilePicker === 'function') {
+    window.showOpenFilePicker({ startIn: dirH, types: [{ description: 'Proyek Coretan', accept: { 'application/octet-stream': ['.coretan'] } }] })
+      .then(function (hs) { return hs[0].getFile(); }).then(function (f) { projName = f.name; openProject(f); })
+      .catch(function (e) { if (!e || e.name !== 'AbortError') $('#prjInput').click(); });
+    return;
+  }
+  $('#prjInput').click();
 });
-$('#prjInput').addEventListener('change', function (e) { var f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) openProject(f); });
+$('#prjInput').addEventListener('change', function (e) { var f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) { projName = f.name; openProject(f); } });
 window.addEventListener('beforeunload', function (e) { if (K.projectDirty()) { e.preventDefault(); e.returnValue = ''; } });
 K.saveProject = save; K.openProject = openProject; K.describeProject = describe;
 emptyFp = describe().fp; savedFp = emptyFp;
@@ -6018,17 +6741,10 @@ async function pickAudio() {
 
 async function mixAudio(tot) {
   var oc = new OfflineAudioContext(2, Math.ceil(tot * AUD_SR), AUD_SR);
-  K.layoutTimes().forEach(function (o) {
-    if (o.kind !== 'scene') return;
-    var pl = K.sceneAudioPlan(o.s); if (!pl) return;
-    var g = oc.createGain(); g.gain.value = pl.gain; g.connect(oc.destination);
-    var src = oc.createBufferSource(); src.buffer = pl.buf; src.connect(g); src.start(o.start, pl.off, pl.len);
-  });
-  if (state.bgm) {
-    var g2 = oc.createGain(); g2.gain.value = state.set.bgmVol / 100; g2.connect(oc.destination);
-    var bs = oc.createBufferSource(); bs.buffer = state.bgm.buf; bs.loop = true; bs.connect(g2);
-    bs.start(0); bs.stop(tot);
-  }
+  var lim = K.makeLimiter(oc); lim.connect(oc.destination);
+  var map = function (t) { return t; };
+  K.layoutTimes().forEach(function (o) { if (o.kind === 'scene') K.wireScene(oc, lim, o, map, 0, null); });
+  K.wireBgm(oc, lim, 0, tot, map, null);
   return oc.startRendering();
 }
 
@@ -6304,4 +7020,4 @@ Promise.all(K.sampleSVGs.map(function (sv, i) { return K.newScene(K.svgURI(sv), 
 
 </script>
 </body>
-</html> 
+</html>
