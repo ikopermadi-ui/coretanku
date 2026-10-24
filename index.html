@@ -227,6 +227,13 @@ input[type=color]{height:38px;width:56px;padding:2px;border:1px solid var(--line
 .keyrow{display:flex;gap:8px}
 .keyrow input{flex:1;min-width:0}
 body.modal-open{overflow:hidden}
+#keyList h3{margin:14px 0 6px;font:700 12px/1 var(--font-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2)}
+#keyList dl{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 14px;margin:0;align-items:baseline}
+#keyList dt{white-space:nowrap}
+#keyList dd{margin:0;font-size:14px;line-height:1.35}
+kbd{font:600 12px/1 var(--font-mono);background:var(--surface-2);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:3px 6px}
+@media (max-width:600px){#keyList dl{grid-template-columns:1fr}#keyList dt{white-space:normal}}
+
 
 /* ---- v10: tata letak ala editor video ---- */
 body{padding-block:14px 28px}
@@ -387,7 +394,7 @@ body{padding-block:14px 28px}
 .vseg .h.l{left:0}.vseg .h.r{right:0}
 .vseg .h::after{content:"";position:absolute;top:14px;bottom:14px;left:6px;width:2px;background:#fff;border-radius:1px;opacity:.9}
 
-@media (max-width:1099px){#prjFolder{display:none !important}}
+@media (max-width:1099px){#prjFolder,#keyHelp{display:none !important}}
 #prjFolder{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 .aimode{align-self:stretch;display:grid;grid-template-columns:1fr 1fr}
@@ -411,7 +418,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       <h1 class="logo"><img class="logo-img" id="logoImg" src="coretanku.png" alt="Coretan"><span class="logo-txt">Coretan</span></h1>
       <p class="tag">Ubah gambar dan narasi jadi video yang seolah digambar tangan</p>
     </div>
-    <div class="top-r"><span class="chip" id="modeChip">memuat…</span><button class="btn small" id="prjOpen" type="button" title="Buka file proyek (.coretan) untuk melanjutkan pekerjaan">Buka proyek</button><button class="btn small" id="prjSave" type="button" title="Simpan semua adegan, gambar, narasi, dan pengaturan ke satu file .coretan">Simpan proyek</button><button class="btn small" id="prjFolder" type="button" hidden title="Pilih folder tempat proyek disimpan. Setelah dipilih, tombol Simpan proyek langsung menulis ke folder itu tanpa dialog unduhan. Belum dipilih: proyek disimpan lewat unduhan biasa.">📁 Pilih folder</button><input id="prjInput" type="file" accept=".coretan,application/octet-stream" hidden><button class="btn primary small" id="hdrExport" type="button">Ekspor video</button></div>
+    <div class="top-r"><span class="chip" id="modeChip">memuat…</span><button class="btn small" id="prjOpen" type="button" title="Buka file proyek (.coretan) untuk melanjutkan pekerjaan">Buka proyek</button><button class="btn small" id="prjSave" type="button" title="Simpan semua adegan, gambar, narasi, dan pengaturan ke satu file .coretan">Simpan proyek</button><button class="btn small" id="prjFolder" type="button" hidden title="Pilih folder tempat proyek disimpan. Setelah dipilih, tombol Simpan proyek langsung menulis ke folder itu tanpa dialog unduhan. Belum dipilih: proyek disimpan lewat unduhan biasa.">📁 Pilih folder</button><button class="btn small" id="keyHelp" type="button" title="Daftar pintasan keyboard (tekan ? kapan saja)">⌨ Pintasan</button><input id="prjInput" type="file" accept=".coretan,application/octet-stream" hidden><button class="btn primary small" id="hdrExport" type="button">Ekspor video</button></div>
   </header>
 
   <div class="layout" id="layout">
@@ -560,7 +567,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
             <select id="setSkin"><option value="terang">Terang</option><option value="sawo" selected>Sawo matang</option><option value="gelap">Gelap</option></select>
           </label>
           <label class="rng">Kecepatan tangan: <b id="speedLbl">Sedang</b>
-            <input id="setSpeed" type="range" min="1" max="10" step="1" value="5">
+            <input id="setSpeed" type="range" min="1" max="10" step="1" value="4">
           </label>
           <label class="rng">Detail garis sketsa: <b id="detailLbl">50%</b>
             <input id="setDetail" type="range" min="0" max="100" step="10" value="50">
@@ -622,6 +629,23 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
           </label>
         </div>
         <p class="hint" id="trHint">Adegan lama mundur sedikit, tanda digambar di ruang kosong, lalu kamera bergeser ke adegan berikutnya. Durasi transisi ditambahkan di antara adegan.</p>
+      </div>
+
+      <div class="panel" id="inPanel">
+        <h2>Transisi antar gambar</h2>
+        <p class="hint">Cara gambar lama pergi ketika gambar berikutnya di dalam adegan yang sama akan muncul. Efeknya memakai bagian akhir waktu tampil gambar lama, jadi durasi adegan tidak berubah. Bisa diganti per gambar lewat kartu elemen.</p>
+        <div class="grid2">
+          <label class="f">Efek
+            <select id="inType"><option value="fade">Memudar</option><option value="slide">Geser keluar</option><option value="zoom">Membesar lalu hilang</option><option value="wipe">Tersapu</option><option value="pan">Geser kamera + tanda</option><option value="cut">Langsung (pudar cepat)</option></select>
+          </label>
+          <label class="f">Arah kamera
+            <select id="inDir"><option value="right">Ke kanan</option><option value="left">Ke kiri</option><option value="down">Ke bawah</option><option value="up">Ke atas</option></select>
+          </label>
+          <label class="rng">Durasi efek: <b id="inDurLbl">0.7 dtk</b>
+            <input id="inDur" type="range" min="0.3" max="2" step="0.1" value="0.7">
+          </label>
+        </div>
+        <p class="hint" id="inHint">Gambar lama memudar pelan sebelum gambar berikutnya digambar.</p>
       </div>
 
         </div>
@@ -703,7 +727,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
                 <button class="btn small" id="zoomFit" type="button">Pas</button>
                 <button class="btn small" id="zoomIn" type="button" aria-label="Perbesar timeline">+</button>
                 <span class="mono" id="headLbl"></span>
-                <span class="hint">Klik penggaris untuk memindah posisi. Seret bar untuk mengatur kapan elemen muncul dan hilang.</span>
+                <span class="hint">Klik penggaris untuk memindah posisi. Seret bar untuk mengatur kapan elemen muncul dan hilang. Tekan ? untuk daftar pintasan.</span>
               </div>
               <div class="tl" id="tl"><div class="tl-scroll" id="tlScroll"><div class="tl-inner" id="tlInner"></div></div></div>
               <div class="add-row vid-row" id="vidTools">
@@ -743,6 +767,13 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
         </div>
       </div>
     </section>
+  </div>
+<div class="modal" id="keyModal" role="dialog" aria-modal="true" aria-labelledby="keyTitle" hidden>
+    <div class="modal-card" style="width:min(640px,100%)">
+      <div class="panel-head"><h2 id="keyTitle">Pintasan keyboard</h2><button class="btn icon" id="keyClose" type="button" aria-label="Tutup">×</button></div>
+      <p class="hint">Aktif saat kamu tidak sedang mengetik di kolom isian. Di Mac, pakai Cmd sebagai pengganti Ctrl.</p>
+      <div id="keyList"></div>
+    </div>
   </div>
 <div class="modal" id="aiModal" role="dialog" aria-modal="true" aria-labelledby="aiTitle" hidden>
     <div class="modal-card">
@@ -2679,9 +2710,9 @@ var cv = $('#stage'), cx = cv.getContext('2d');
 
 var state = {
   scenes: [], bgm: null, playing: false, exporting: false, fresh: true,
-  set: { res: '720', fps: 30, bg: '#ffffff', fit: 'contain', hand: true, speed: 5, tool: 'pulpen', skin: 'sawo', sketchDetail: 50,
+  set: { res: '720', fps: 30, bg: '#ffffff', fit: 'contain', hand: true, speed: 4, tool: 'pulpen', skin: 'sawo', sketchDetail: 50,
          narrVol: 100, clipVol: 100, bgmVol: 25, duck: false, denoise: 'mid', handCustom: null, flow: 'tulis', textFont: 'kalam', textSize: 'm', textColor: '#142320',
-         trType: 'pan', trDir: 'right', trSym: 'arrow', trColor: '#1D4ED8', trSize: 100, trDur: 1.6 }
+         trType: 'pan', trDir: 'right', trSym: 'arrow', trColor: '#1D4ED8', trSize: 100, trDur: 1.6, inType: 'fade', inDir: 'right', inDur: 0.7 }
 };
 var uid = 0, curT = 0;
 
@@ -3325,8 +3356,47 @@ function speedPct(s) {
   if (s && s.speed === 'slow') return 90;
   return 95 - (state.set.speed - 1) * 7;
 }
+/* detik yang dibutuhkan tangan untuk menggambar gambar besar (tidak bergantung pada lama gambar tampil) */
+function speedBase(s) {
+  if (s && s.speed === 'fast') return 2.2;
+  if (s && s.speed === 'mid') return 3.8;
+  if (s && s.speed === 'slow') return 6;
+  return 1.2 + (10 - state.set.speed) * 0.55;
+}
 function drawTime(s, span) {
-  return Math.max(0.4, Math.min(span - Math.min(0.5, span * 0.2), span * speedPct(s) / 100));
+  var sf = (s && s.kind !== 'text' && s.w) ? clamp(0.6 + 0.6 * s.w, 0.7, 1.15) : 1;
+  return Math.max(0.4, Math.min(speedBase(s) * sf, span * 0.8, span - Math.min(0.5, span * 0.2)));
+}
+
+/* ---------- peta isi gambar: tangan hanya bergerak di bagian yang ada gambarnya ---------- */
+function contentProfile(it, R) {
+  var c = it._cp;
+  if (!c || c.img !== it.img) {
+    var N = 128, cv2 = document.createElement('canvas'); cv2.width = N; cv2.height = N;
+    var g = cv2.getContext('2d', { willReadFrequently: true }), map = new Uint8Array(N * N);
+    try {
+      g.drawImage(it.img, 0, 0, N, N);
+      var d = g.getImageData(0, 0, N, N).data;
+      for (var i = 0; i < N * N; i++) map[i] = (d[i * 4 + 3] > 40 && (d[i * 4] + d[i * 4 + 1] + d[i * 4 + 2]) / 3 < 238) ? 1 : 0;
+    } catch (e) { map.fill(1); }
+    c = it._cp = { img: it.img, N: N, map: map, by: {} };
+  }
+  if (c.by[R]) return c.by[R];
+  var N2 = c.N, bands = [], maxM = 1, r, x, y, prevEnd = 0;
+  for (r = 0; r < R; r++) {
+    var y0 = Math.floor(r * N2 / R), y1 = Math.max(y0 + 1, Math.floor((r + 1) * N2 / R)), x0 = N2, x1 = -1, m = 0;
+    for (y = y0; y < y1; y++) for (x = 0; x < N2; x++) if (c.map[y * N2 + x]) { m++; if (x < x0) x0 = x; if (x > x1) x1 = x; }
+    bands.push({ m: m, x0: m ? x0 / N2 : prevEnd, x1: m ? (x1 + 1) / N2 : prevEnd });
+    if (m) prevEnd = (x1 + 1) / N2;
+    if (m > maxM) maxM = m;
+  }
+  var cum = [0], tot = 0;
+  bands.forEach(function (b) { b.w = b.m ? 0.15 + b.m / maxM : 0.03; tot += b.w; cum.push(tot); });
+  return (c.by[R] = { bands: bands, cum: cum, tot: tot });
+}
+function profileFor(it, R, rect, vis) {
+  if (!it || !it.img || Math.abs(vis.x - rect.x) > 1 || Math.abs(vis.y - rect.y) > 1 || Math.abs(vis.w - rect.w) > 1 || Math.abs(vis.h - rect.h) > 1) return null;
+  return contentProfile(it, R);
 }
 
 /* ---------- deteksi tepi untuk efek sketsa ---------- */
@@ -3392,9 +3462,10 @@ function prepEdges() {
    mode 'tulis'  : baris demi baris, selalu kiri ke kanan (seperti orang menulis), lalu tangan kembali ke kiri
    mode 'kolom'  : kolom demi kolom dari kiri ke kanan (naik-turun)
    mode 'zigzag' : baris atas ke bawah, bolak-balik (cara lama) */
-function sweepClip(v, R, p, mode) {
+function sweepClip(v, R, p, mode, prof) {
   mode = mode || state.set.flow || 'tulis';
   var tip, pr, r, frac;
+  if (prof && mode === 'tulis') return sweepProf(v, R, p, prof);
   cx.beginPath();
   if (mode === 'kolom') {
     var C = Math.max(4, Math.round(R * 1.7)), bw = v.w / C;
@@ -3426,6 +3497,25 @@ function sweepClip(v, R, p, mode) {
   }
   return tip;
 }
+/* mode tulis yang mengikuti isi gambar: baris kosong dilewati cepat, baris padat lebih lama, dan tangan hanya menyapu bagian yang berisi */
+function sweepProf(v, R, p, prof) {
+  var B = prof.bands, bh = v.h / R, tp = clamp(p, 0, 1) * prof.tot, r = R - 1, i;
+  for (i = 0; i < R; i++) if (tp < prof.cum[i + 1]) { r = i; break; }
+  var q = p >= 1 ? 1 : clamp((tp - prof.cum[r]) / B[r].w, 0, 1), last = r === R - 1, WR = last ? 1 : 0.7;
+  var b = B[r], u = q >= WR ? 1 : q / WR, xf = b.x0 + (b.x1 - b.x0) * u, tip;
+  cx.beginPath();
+  if (r > 0) cx.rect(v.x, v.y, v.w, Math.ceil(r * bh) + 1);
+  if (u >= 1 || !b.m) cx.rect(v.x, v.y + r * bh, v.w, bh + 1);
+  else cx.rect(v.x, v.y + r * bh, v.w * xf, bh + 1);
+  cx.clip();
+  var cy = v.y + (r + 0.5) * bh;
+  if (q < WR || last) tip = { x: v.x + v.w * xf, y: cy + Math.sin(u * 9) * bh * 0.16 };
+  else {
+    var rf = ease((q - WR) / (1 - WR)), nb = B[r + 1];
+    tip = { x: v.x + v.w * (b.x1 + (nb.x0 - b.x1) * rf), y: cy + bh * rf };
+  }
+  return tip;
+}
 /* kotak gambar (px kanvas) untuk elemen gambar */
 function itemRect(it, W, H) {
   var iw = it.img.naturalWidth || it.img.width, ih = it.img.naturalHeight || it.img.height;
@@ -3436,15 +3526,35 @@ function backOut(x) { x = clamp(x, 0, 1); var c1 = 1.70158, c3 = c1 + 1; return 
 function outCubic(x) { x = clamp(x, 0, 1); return 1 - Math.pow(1 - x, 3); }
 
 /* Menggambar satu elemen pada waktu adegan lt. Mengembalikan {tip, handA} bila tangan perlu ikut. ghost = tampilan akhir saja. */
+/* ---------- transisi antar gambar: cara gambar lama pergi ---------- */
+var EXDIRS = { right: { x: 1, y: 0 }, down: { x: 0, y: 1 }, left: { x: -1, y: 0 }, up: { x: 0, y: -1 } };
+var EX_TYPES = { none: 1, fade: 1, slide: 1, zoom: 1, wipe: 1, pan: 1, cut: 1 };
+function exitType(it) { var t = it.exit && EX_TYPES[it.exit] ? it.exit : state.set.inType; return EX_TYPES[t] ? t : 'cut'; }
+/* null kalau gambar belum/tidak sedang keluar */
+function exitInfo(s, it, lt) {
+  if (it.end == null || it.end >= s.dur) return null;
+  var end = K.itemEnd(s, it), type = exitType(it);
+  if (type === 'none') return null;
+  var D = type === 'cut' ? 0.25 : clamp(state.set.inDur || 0.7, 0.15, Math.max(0.15, (end - it.start) * 0.75));
+  if (lt < end - D) return null;
+  return { type: type, q: clamp((lt - (end - D)) / D, 0, 1), D: D };
+}
+function itemBounds(it, W, H) {
+  if (it.kind === 'text') { var T = K.textLayout(it, W, H); if (T) return T.bbox; return { x: 0, y: 0, w: W, h: H }; }
+  return itemRect(it, W, H);
+}
 function drawItem(s, it, lt, W, H, ghost) {
   var end = K.itemEnd(s, it), span = Math.max(0.2, end - it.start), l = lt - it.start;
   if (!ghost && (l < 0 || lt > end + 1e-6)) return null;
-  var fo = (!ghost && it.end != null && it.end < s.dur) ? clamp((end - lt) / 0.25, 0, 1) : 1;
+  var ex = ghost ? null : exitInfo(s, it, lt);
+  var fo = (ex && ex.type === 'cut') ? clamp(1 - ex.q, 0, 1) : 1;
   if (ghost) l = span + 5;
   if (fo <= 0) return null;
-  var res = null;
+  var res = null, exSym = null;
   cx.save();
   cx.globalAlpha *= fo;
+  if (ex && ex.type !== 'cut') exSym = applyExit(ex, it, W, H);
+  cx.save();
   if (it.kind === 'text') {
     var T = K.textLayout(it, W, H);
     if (T) {
@@ -3461,16 +3571,20 @@ function drawItem(s, it, lt, W, H, ghost) {
       if (vis.w > 2 && vis.h > 2) {
         if (a === 'hand') {
           var p = Math.min(1, l / dd);
-          cx.save(); tip = sweepClip(vis, 10, p); cx.drawImage(it.img, r.x, r.y, r.w, r.h); cx.restore();
+          cx.save(); tip = sweepClip(vis, 8, p, null, profileFor(it, 8, r, vis)); cx.drawImage(it.img, r.x, r.y, r.w, r.h); cx.restore();
           if (p >= 1) handA = Math.max(0, 1 - (l - dd) / 0.3);
         } else {
           var edge = buildEdges(it), dl = dd * 0.55, pl = Math.min(1, l / dl), pc = clamp((l - dl) / (dd - dl), 0, 1);
-          if (l > dl) { cx.save(); tip = sweepClip(vis, 6, pc); cx.drawImage(it.img, r.x, r.y, r.w, r.h); cx.restore(); }
+          if (l > dl) { cx.save(); tip = sweepClip(vis, 5, pc, null, profileFor(it, 5, r, vis)); cx.drawImage(it.img, r.x, r.y, r.w, r.h); cx.restore();
+            /* tangan berpindah halus dari ujung garis ke awal pewarnaan, tidak melompat */
+            var bl = clamp((l - dl) / 0.45, 0, 1);
+            if (bl < 1 && tip) { cx.save(); var et = sweepClip(vis, 12, 1, null, profileFor(it, 12, r, vis)); cx.restore(); var eb = ease(bl); tip = { x: et.x + (tip.x - et.x) * eb, y: et.y + (tip.y - et.y) * eb }; }
+          }
           var fadeLen = Math.max(0.3, Math.min(0.7, span - dd - 0.05));
           var la = l <= dd ? 1 : clamp(1 - (l - dd) / fadeLen, 0, 1);
           if (la > 0) {
             cx.save(); cx.globalAlpha *= la * 0.95;
-            var t2 = sweepClip(vis, 14, pl);
+            var t2 = sweepClip(vis, 12, pl, null, profileFor(it, 12, r, vis));
             cx.drawImage(edge, r.x, r.y, r.w, r.h); cx.restore();
             if (l <= dl) tip = t2;
           }
@@ -3500,7 +3614,47 @@ function drawItem(s, it, lt, W, H, ghost) {
     }
   }
   cx.restore();
+  if (exSym) { var tp2 = exSym(); if (tp2) res = { tip: tp2.tip, handA: tp2.handA }; }
+  cx.restore();
   return res;
+}
+/* pasang transform/klip/alpha untuk efek keluar; untuk "pan" mengembalikan fungsi penggambar tanda */
+function applyExit(ex, it, W, H) {
+  var q = ex.q, po = ease(q), b = itemBounds(it, W, H), d = EXDIRS[state.set.inDir] || EXDIRS.right;
+  if (ex.type === 'fade') { cx.globalAlpha *= 1 - po; return null; }
+  if (ex.type === 'zoom') {
+    var k = 1 + 0.35 * po, px = b.x + b.w / 2, py = b.y + b.h / 2;
+    cx.globalAlpha *= 1 - po; cx.translate(px, py); cx.scale(k, k); cx.translate(-px, -py); return null;
+  }
+  if (ex.type === 'slide') {
+    /* arah = arah kamera, jadi gambar bergerak ke arah sebaliknya (sama seperti antar adegan) */
+    var dist = d.x > 0 ? b.x + b.w : d.x < 0 ? W - b.x : d.y > 0 ? b.y + b.h : H - b.y;
+    dist = Math.max(0, dist) + 4;
+    cx.translate(-d.x * dist * po, -d.y * dist * po); return null;
+  }
+  if (ex.type === 'wipe') {
+    var x0 = 0, y0 = 0, x1 = W, y1 = H;
+    if (d.x > 0) x1 = b.x + b.w - b.w * po; else if (d.x < 0) x0 = b.x + b.w * po;
+    else if (d.y > 0) y1 = b.y + b.h - b.h * po; else y0 = b.y + b.h * po;
+    cx.beginPath(); cx.rect(x0, y0, Math.max(0, x1 - x0), Math.max(0, y1 - y0)); cx.clip(); return null;
+  }
+  /* pan: mundur, tanda digambar, lalu bergeser keluar (sama seperti antar adegan) */
+  var set = state.set, sym = set.trSym !== 'none';
+  var a1 = sym ? 0.22 : 0, a2 = sym ? 0.58 : 0;
+  var qp = clamp((q - a2) / (1 - a2), 0, 1), pp = ease(qp);
+  var e1 = !sym ? 0 : (q < a1 ? ease(q / a1) : (q < a2 ? 1 : 1 - pp));
+  var sc = 1 - 0.22 * e1;
+  var tx = -d.x * (0.09 * W * e1 + W * 1.05 * pp), ty = -d.y * (0.09 * H * e1 + H * 1.05 * pp);
+  cx.translate(W / 2 + tx, H / 2 + ty); cx.scale(sc, sc); cx.translate(-W / 2, -H / 2);
+  if (!sym || q <= a1) return null;
+  return function () {
+    var ps = clamp((q - a1) / (a2 - a1), 0, 1);
+    var wx = W / 2 + d.x * 0.628 * W, wy = H / 2 + d.y * 0.628 * H;
+    var size = ((d.x ? 0.26 : 0.17) * H * set.trSize / 100) / 0.78 / 2;
+    var tip = K.drawSymbol(set.trSym, wx, wy, size, Math.atan2(d.y, d.x), ps, set.trColor);
+    if (!tip) return null;
+    return { tip: tip, handA: ps < 1 ? 1 : Math.max(0, 1 - (q - a2) / 0.08) };
+  };
 }
 
 /* ---------- satu adegan ---------- */
@@ -3532,7 +3686,7 @@ function posterTime(s) {
 
 K.itemRect = itemRect; K.drawItem = drawItem; K.drawScene = drawScene; K.posterTime = posterTime;
 K.prepEdges = prepEdges; K.buildEdges = buildEdges; K.loadHand = loadHand; K.drawHand = drawHand;
-K.clamp = clamp; K.ease = ease; K.drawTime = drawTime; K.speedPct = speedPct;
+K.clamp = clamp; K.ease = ease; K.drawTime = drawTime; K.speedPct = speedPct; K.speedBase = speedBase;
 })();
 
 (function () {
@@ -3601,7 +3755,7 @@ K.textLayout = function (it, W, H) {
 };
 
 K.textTime = function (it, T, span) {
-  var tt = Math.max(0.8, T.chars * 0.085 * (K.speedPct(it) / 62));
+  var tt = Math.max(1, T.chars * 0.19 * (K.speedBase(it) / 3.95));
   return Math.max(0.3, Math.min(tt, Math.max(0.3, span * 0.9)));
 };
 
@@ -3742,6 +3896,7 @@ function drawSymbol(kind, x, y, size, angle, p, color) {
   return res;
 }
 
+K.drawSymbol = drawSymbol;
 var DIRS = { right: { x: 1, y: 0 }, down: { x: 0, y: 1 }, left: { x: -1, y: 0 }, up: { x: 0, y: -1 } };
 
 /* ---------- satu transisi ---------- */
@@ -3930,8 +4085,8 @@ $('#setFps').addEventListener('change', function (e) { state.set.fps = parseInt(
 $('#setBg').addEventListener('input', function (e) { state.set.bg = e.target.value; K.render(K.getT()); });
 $('#setHand').addEventListener('change', function (e) { state.set.hand = e.target.checked; K.render(K.getT()); });
 function speedText() {
-  var v = state.set.speed, pct = 95 - (v - 1) * 7;
-  return (v <= 3 ? 'Lambat' : v <= 7 ? 'Sedang' : 'Cepat') + ' (' + (5 * pct / 100).toFixed(1) + ' dtk dari 5 dtk)';
+  var v = state.set.speed, sec = (1.2 + (10 - v) * 0.55) * 1.15;
+  return (v <= 3 ? 'Sangat lambat' : v <= 5 ? 'Lambat' : v <= 7 ? 'Sedang' : 'Cepat') + ' (±' + sec.toFixed(1) + ' dtk untuk gambar besar)';
 }
 $('#setSpeed').addEventListener('input', function (e) { state.set.speed = parseInt(e.target.value, 10); $('#speedLbl').textContent = speedText(); K.render(K.getT()); });
 $('#speedLbl').textContent = speedText();
@@ -3967,6 +4122,16 @@ $('#trSym').addEventListener('change', function (e) { state.set.trSym = e.target
 $('#trColor').addEventListener('input', function (e) { state.set.trColor = e.target.value; K.render(K.getT()); });
 $('#trSize').addEventListener('input', function (e) { state.set.trSize = parseInt(e.target.value, 10); $('#trSizeLbl').textContent = state.set.trSize + '%'; K.render(K.getT()); });
 $('#trDur').addEventListener('input', function (e) { state.set.trDur = parseFloat(e.target.value); $('#trDurLbl').textContent = state.set.trDur.toFixed(1) + ' dtk'; trChanged(); });
+/* transisi antar gambar */
+var IN_HINT = { fade: 'Gambar lama memudar pelan sebelum gambar berikutnya digambar.', slide: 'Gambar lama bergeser keluar layar, searah gerak kamera yang dipilih.', zoom: 'Gambar lama membesar sedikit sambil memudar.', wipe: 'Gambar lama tersapu bersih dari satu sisi ke sisi lain.', pan: 'Seperti transisi antar adegan: gambar lama mundur, tanda digambar di ruang kosong, lalu gambar lama bergeser keluar. Durasi 1 dtk ke atas lebih enak dilihat.', cut: 'Gambar lama hilang cepat (0,25 dtk), tanpa efek.' };
+function inSync() {
+  var t = state.set.inType; $('#inDir').disabled = t === 'fade' || t === 'zoom' || t === 'cut'; $('#inDur').disabled = t === 'cut';
+  $('#inHint').textContent = IN_HINT[t] || '';
+}
+$('#inType').addEventListener('change', function (e) { state.set.inType = e.target.value; inSync(); K.render(K.getT()); });
+$('#inDir').addEventListener('change', function (e) { state.set.inDir = e.target.value; K.render(K.getT()); });
+$('#inDur').addEventListener('input', function (e) { state.set.inDur = parseFloat(e.target.value); $('#inDurLbl').textContent = state.set.inDur.toFixed(1) + ' dtk'; K.render(K.getT()); });
+inSync();
 $('#setDenoise').addEventListener('change', function (e) {
   state.set.denoise = e.target.value;
   var s = K.selScene(); if (K.onCleanDone) K.onCleanDone();
@@ -4189,7 +4354,7 @@ $('#imgInput').addEventListener('change', function (e) {
 /* adegan kosong: narasi dan gambarnya ditambahkan kemudian */
 K.newEmptyScene = function (afterId) {
   if (state.exporting) return null;
-  var sc = K.newSceneObj(); sc.dur = 8;
+  var sc = K.newSceneObj(); sc.dur = 5;
   K.insertScenes([sc], afterId);
   K.setMsg('Adegan baru dibuat. Rekam atau unggah narasinya, lalu tambahkan gambar-gambarnya.', 'ok');
   return sc;
@@ -4249,6 +4414,7 @@ var pps = 60, head = null, refs = {};
 var ANIMS_DRAW = [['sketch', 'Sketsa: garis dulu, lalu warna'], ['hand', 'Tangan menggambar langsung']];
 var ANIMS_STICK = [['pop', 'Muncul membal (pop)'], ['fade', 'Muncul pelan (fade)'], ['slideR', 'Geser masuk dari kanan'], ['slideL', 'Geser masuk dari kiri'], ['zoom', 'Zoom pelan'], ['none', 'Langsung muncul']];
 var ANIM_NAME = {}; ANIMS_DRAW.concat(ANIMS_STICK).forEach(function (a) { ANIM_NAME[a[0]] = a[1]; });
+var EXITS = [['', 'Ikut pengaturan umum'], ['none', 'Tanpa efek (langsung hilang)'], ['fade', 'Memudar'], ['slide', 'Geser keluar'], ['zoom', 'Membesar lalu hilang'], ['wipe', 'Tersapu'], ['pan', 'Geser kamera + tanda'], ['cut', 'Langsung (pudar cepat)']];
 var SPEEDS = [['auto', 'Ikut pengaturan'], ['fast', 'Cepat'], ['mid', 'Sedang'], ['slow', 'Lambat']];
 var TSIZES = [['s', 'Kecil'], ['m', 'Sedang'], ['l', 'Besar'], ['xl', 'Sangat besar']];
 
@@ -4724,6 +4890,12 @@ function renderInspector() {
   }));
   sw.appendChild(rb); insp.appendChild(sw);
 
+  /* cara hilang (transisi ke gambar berikutnya) */
+  var sx = sec('Cara hilang (transisi antar gambar)');
+  sx.appendChild(mkSel(EXITS, it.exit || '', function (v) { if (v) it.exit = v; else delete it.exit; K.render(K.getT()); }));
+  sx.appendChild(el('span', 'hint', 'Berlaku kalau gambar ini selesai sebelum akhir adegan. Efek dimainkan di bagian akhir waktu tampilnya. Untuk menonton, geser garis merah ke sekitar waktu Selesai.'));
+  insp.appendChild(sx);
+
   /* ukuran & posisi */
   var sz = sec(it.kind === 'text' ? 'Lebar teks' : 'Ukuran');
   var rg = el('label', 'rng'), sl = el('b', null, Math.round(it.w * 100) + '%');
@@ -4773,24 +4945,99 @@ function moveLayer(s, it, d) {
   renderTimeline(); renderInspector(); K.render(K.getT());
 }
 function duplicateItem(s, it) {
+  K.undoPush(s);
   var c = {}; for (var k in it) if (k !== '_tl' && k !== 'edge') c[k] = it[k];
   c.id = K.newTextItem('').id; c.edge = null; c.edgeDetail = -1; c.x = Math.min(0.95, it.x + 0.05); c.y = Math.min(0.95, it.y + 0.05);
   s.items.splice(s.items.indexOf(it) + 1, 0, c); ui.itemId = c.id;
   K.prepEdges(); renderTimeline(); renderInspector(); K.renderScenes(); K.render(K.getT());
 }
 function deleteItem(s, it) {
+  K.undoPush(s);
   s.items.splice(s.items.indexOf(it), 1); ui.itemId = null;
   renderTimeline(); renderInspector(); K.renderScenes(); K.render(K.getT());
 }
+
+/* =================== urungkan, potong, salin & tempel elemen (pintasan keyboard) =================== */
+var undoStack = [], itemClip = null;
+function copyItem(it) { var c = {}; for (var k in it) if (k !== '_tl' && k !== '_cp' && k !== 'edge') c[k] = it[k]; c.edge = null; c.edgeDetail = -1; return c; }
+function sceneById(id) { var r = null; state.scenes.forEach(function (x) { if (x.id === id) r = x; }); return r; }
+K.undoPush = function (s) {
+  undoStack.push({ t: 'items', sid: s.id, items: s.items.map(copyItem), itemId: ui.itemId });
+  if (undoStack.length > 80) undoStack.shift();
+};
+K.undoPushSeg = function (s) { undoStack.push({ t: 'seg', sid: s.id }); if (undoStack.length > 80) undoStack.shift(); };
+K.undo = function () {
+  if (state.exporting) return false;
+  while (undoStack.length) {
+    var u = undoStack.pop(), s = sceneById(u.sid); if (!s) continue;
+    if (state.playing) K.pause();
+    if (u.t === 'seg') {
+      ui.sceneId = s.id;
+      if (K.segUndoScene && K.segUndoScene(s)) { K.refreshUI(); K.render(K.getT()); K.setMsg('Dibatalkan: potongan terakhir.', 'ok'); return true; }
+      continue;
+    }
+    s.items = u.items.map(copyItem); ui.sceneId = s.id;
+    ui.itemId = s.items.some(function (x) { return x.id === u.itemId; }) ? u.itemId : null;
+    K.prepEdges(); K.updateTotals(); K.refreshUI(); K.render(K.getT());
+    K.setMsg('Dibatalkan (Ctrl+Z).', 'ok'); return true;
+  }
+  K.setMsg('Tidak ada yang bisa dibatalkan.');
+  return false;
+};
+K.splitItem = function (s, it) {
+  if (!s || !it || state.exporting) return false;
+  if (it.kind !== 'image') { K.setMsg('Yang bisa dipotong di garis merah: gambar, klip, dan narasi. Teks tidak bisa dipotong.'); return false; }
+  var h = headLocal(s), end = K.itemEnd(s, it);
+  if (h == null) { K.setMsg('Geser garis merah ke dalam adegan ini dulu (klik penggaris di timeline).'); return false; }
+  if (h < it.start + 0.2 || h > end - 0.2) { K.setMsg('Garis merah harus berada di dalam bar gambar terpilih, minimal 0,2 dtk dari tepinya.'); return false; }
+  if (state.playing) K.pause();
+  K.undoPush(s);
+  var c = copyItem(it); c.id = K.newTextItem('').id; c.anim = 'none'; c.start = r1(h);
+  it.end = r1(h); it.exit = 'none';
+  s.items.splice(s.items.indexOf(it) + 1, 0, c); s.spread = false; ui.itemId = c.id;
+  K.prepEdges(); renderTimeline(); renderInspector(); K.renderScenes(); K.render(K.getT());
+  K.setMsg('Gambar dipotong di ' + r1(h).toFixed(1) + ' dtk. Bagian kedua bisa dipindah atau diubah ukurannya sendiri.', 'ok');
+  return true;
+};
+K.itemCopy = function () {
+  var it = K.selItem(); if (!it) return false;
+  itemClip = { it: copyItem(it), len: K.itemEnd(K.selScene(), it) - it.start };
+  K.setMsg('Elemen disalin. Pindah garis merah ke tempat yang diinginkan, lalu tekan Ctrl+V.', 'ok'); return true;
+};
+K.itemPaste = function () {
+  var s = K.selScene(); if (!itemClip || !s || s.video || state.exporting) return false;
+  if (state.playing) K.pause();
+  K.undoPush(s);
+  var c = copyItem(itemClip.it); c.id = K.newTextItem('').id;
+  var h = headLocal(s); c.start = r1(clamp(h == null ? 0 : h, 0, Math.max(0, s.dur - 0.2)));
+  var e = r1(c.start + Math.max(0.2, itemClip.len)); c.end = e >= s.dur - 0.05 ? null : e;
+  c.x = Math.min(0.95, c.x + 0.03); c.y = Math.min(0.95, c.y + 0.03);
+  s.items.push(c); s.spread = false; ui.itemId = c.id;
+  K.prepEdges(); renderTimeline(); renderInspector(); K.renderScenes(); K.render(K.getT());
+  K.setMsg('Elemen ditempel di ' + c.start.toFixed(1) + ' dtk.', 'ok'); return true;
+};
+K.hasItemClip = function () { return !!itemClip; };
+/* [ dan ]: mulai / selesai elemen terpilih di garis merah */
+K.itemMark = function (which) {
+  var s = K.selScene(), it = K.selItem(); if (!s || !it || state.exporting) return false;
+  var h = headLocal(s); if (h == null) { K.setMsg('Geser garis merah ke dalam adegan ini dulu (klik penggaris di timeline).'); return false; }
+  K.undoPush(s);
+  if (which === 'start') { it.start = clamp(r1(h), 0, s.dur - 0.2); if (it.end != null && it.end < it.start + 0.2) it.end = Math.min(s.dur, r1(it.start + 0.2)); }
+  else { it.end = clamp(r1(h), it.start + 0.2, s.dur); if (it.end >= s.dur - 0.05) it.end = null; }
+  syncInspector(); afterChange(it); return true;
+};
 
 /* =================== tambah elemen =================== */
 var itemRole = 'draw';
 function headStart(s) { var h = headLocal(s); return (h == null || h > s.dur - 0.5) ? 0 : r1(h); }
 $('#addDraw').addEventListener('click', function () { itemRole = 'draw'; $('#itemInput').click(); });
 $('#itemInput').addEventListener('change', function (e) {
-  var s = K.selScene(), files = Array.prototype.slice.call(e.target.files || []).filter(function (f) { return /^image\//.test(f.type); });
-  e.target.value = '';
-  if (!s || !files.length) return;
+  var fl = Array.prototype.slice.call(e.target.files || []); e.target.value = '';
+  K.addImageFiles(fl);
+});
+K.addImageFiles = function (fl) {
+  var s = K.selScene(), files = fl.filter(function (f) { return /^image\//.test(f.type); });
+  if (!s || s.video || state.exporting || !files.length) return;
   files.sort(function (a, b) { return a.name.localeCompare(b.name, undefined, { numeric: true }); });
   Promise.all(files.map(function (f) { return K.newImageItem(URL.createObjectURL(f), f.name, 'main'); })).then(function (list) {
     var ok = list.filter(Boolean);
@@ -4798,25 +5045,29 @@ $('#itemInput').addEventListener('change', function (e) {
     if (ok.length < files.length) K.setMsg((files.length - ok.length) + ' file gagal dibuka sebagai gambar.', 'err');
     else K.setMsg(ok.length + ' gambar ditambahkan mulai detik ' + base.toFixed(1) + (ui.addMode === 'stack' ? ', tampil bersama.' : ', tampil bergantian.') + ' Geser bar di timeline untuk menyesuaikan dengan narasi.', 'ok');
   });
-});
+};
 /* tambahkan gambar ke adegan s.
    Mode "menggantikan": gambar tampil bergantian (tiap gambar menggantikan yang sebelumnya), tersebar otomatis. Mode "ditempel": semua tetap tampil bersama. */
 function isImgItem(x) { return x.kind === 'image'; }
+/* lama tampil bawaan gambar baru: 5 detik (bukan sampai akhir adegan), supaya bar di timeline pendek dan mudah diatur */
+var DEF_SHOW = 5;
+function defEnd(s, it) { var e = r1(it.start + DEF_SHOW); return e >= s.dur - 0.05 ? null : e; }
 K.addItems = function (s, list, role) {
+  K.undoPush(s);
   var mode = ui.addMode === 'stack' ? 'stack' : 'replace', n = list.length;
   var imgs = s.items.filter(isImgItem), had = s.items.length, base;
   if (!n) return 0;
   if (role === 'draw' && mode === 'replace') {
     var lastStart = imgs.reduce(function (m, x) { return Math.max(m, x.start); }, -1);
     base = imgs.length ? headStart(s) : 0;
-    if (imgs.length && base <= lastStart + 0.05) base = lastStart + 2.5;
-    var gap = 3;
+    if (imgs.length && base <= lastStart + 0.05) base = lastStart + DEF_SHOW;
+    var gap = DEF_SHOW;
     if (s.audio) {
       base = Math.max(0, Math.min(base, s.dur - 0.3 - n * 0.8));
-      gap = Math.max(0.8, (s.dur - 0.3 - base) / n);
+      gap = Math.min(DEF_SHOW, Math.max(0.8, (s.dur - 0.3 - base) / n));
     } else {
-      var need = r1(base + n * gap + 0.3);
-      if (need > s.dur) { s.dur = Math.min(600, need); $('#edDur').value = String(s.dur); }
+      var need = r1(base + n * gap);
+      if (need > s.dur || !had) { s.dur = Math.max(1, Math.min(600, need)); $('#edDur').value = String(s.dur); }
     }
     imgs.forEach(function (x) { if (x.start < base && (x.end == null || x.end > base)) x.end = r1(Math.max(x.start + 0.2, base)); });
     list.forEach(function (it, i) {
@@ -4825,12 +5076,14 @@ K.addItems = function (s, list, role) {
       if (i > 0) { list[i - 1].end = Math.min(it.start, s.dur); if (list[i - 1].end < list[i - 1].start + 0.2) list[i - 1].end = r1(list[i - 1].start + 0.2); }
       s.items.push(it);
     });
-    s.spread = !imgs.length || !!s.spread;
+    var lastNew = list[list.length - 1]; lastNew.end = defEnd(s, lastNew);
+    s.spread = s.audio ? ((!imgs.length || !!s.spread) && base + n * gap >= s.dur - 0.6) : (!imgs.length || !!s.spread);
   } else {
     base = imgs.length ? headStart(s) : 0;
     list.forEach(function (it, i) {
       it.start = Math.min(r1(s.dur - 0.3), r1(base + i * 1.5));
       if (role === 'draw' && had) it.w *= 0.75;
+      if (role === 'draw') it.end = defEnd(s, it);
       s.items.push(it);
     });
     s.spread = false;
@@ -4976,13 +5229,7 @@ K.refreshUI = function () {
   if (K.renderStickers) K.renderStickers();
 };
 
-/* spasi = putar/jeda (bila tidak sedang mengetik) */
-document.addEventListener('keydown', function (e) {
-  if (e.key !== ' ' || e.target.closest('input,textarea,select,button,[role="button"],a')) return;
-  if (state.exporting || !state.scenes.length) return;
-  e.preventDefault();
-  if (state.playing) K.pause(); else { K.play(K.getT(), { onTick: K.uiTick }); K.syncPlayBtn(); }
-});
+K.deleteItem = deleteItem; K.duplicateItem = duplicateItem; K.headLocal = headLocal; K.zoomTo = zoomTo;
 })();
 
 (function () {
@@ -5770,7 +6017,7 @@ function fixAny(s) { if (s.video) fixDur(s); else narrFix(s); }
 function mapAny(s, lt) { return mapSegs(gSegs(s), lt); }
 function segStart(s, i) { var segs = gSegs(s), t = 0; for (var k = 0; k < i; k++) t += segs[k].b - segs[k].a; return t; }
 function noun(s) { return s.video ? 'klip' : 'narasi'; }
-function snap(s) { var h = gHist(s); h.push(JSON.stringify(gSegs(s))); if (h.length > 50) h.shift(); }
+function snap(s) { var h = gHist(s); h.push(JSON.stringify(gSegs(s))); if (h.length > 50) h.shift(); if (K.undoPushSeg) K.undoPushSeg(s); }
 function headLoc(s) { var e = K.sceneEntry(s); return e ? K.getT() - e.start : null; }
 function commit(s) {
   var ent0 = K.sceneEntry(s), lt = ent0 ? K.getT() - ent0.start : 0, inside = lt >= 0 && lt <= s.dur;
@@ -5822,11 +6069,14 @@ function resetSegs() {
   K.setMsg((s.video ? 'Klip' : 'Narasi') + ' dikembalikan utuh dari awal sampai akhir.', 'ok');
 }
 function undoSeg() {
-  var s = curSeg(); if (!s || busy()) return;
-  var h = gHist(s); if (!h.length) return;
+  var s = curSeg(); if (!s || busy()) return false;
+  var h = gHist(s); if (!h.length) return false;
   if (state.playing) K.pause();
   setSegs(s, JSON.parse(h.pop())); ui.vseg = Math.min(ui.vseg, gSegs(s).length - 1); commit(s);
+  return true;
 }
+K.segSplit = splitNow; K.segDelete = delSeg; K.segCur = curSeg; K.segMove = moveSeg; K.segDup = dupSeg;
+K.segUndoScene = function (s) { if (!s || ui.sceneId !== s.id) ui.sceneId = s.id; return undoSeg(); };
 function syncBtns() {
   var s = curSeg(); if (!s) return;
   var n = gSegs(s).length, off = busy();
@@ -5844,10 +6094,6 @@ $('#vsR').addEventListener('click', function () { moveSeg(1); });
 $('#vsDup').addEventListener('click', dupSeg);
 $('#vsReset').addEventListener('click', resetSegs);
 $('#vsUndo').addEventListener('click', undoSeg);
-document.addEventListener('keydown', function (e) {
-  if (e.ctrlKey || e.metaKey || e.altKey || e.target.closest('input,textarea,select,[contenteditable]')) return;
-  if (e.key === 's' || e.key === 'S') { if (curSeg() && !$('#dockScene').hidden) { e.preventDefault(); splitNow(); } }
-});
 
 /* ---------- seret tepi / urutan potongan ---------- */
 var swallow = false;
@@ -6380,6 +6626,213 @@ K.syncMixer = function () {
 
 (function () {
 'use strict';
+/* Pintasan keyboard untuk mempercepat editing. Semua pintasan diam saat sedang mengetik di kolom isian. */
+var K = window.__coretan, $ = K.$, state = K.state, ui = K.ui, clamp = K.clamp;
+
+var HELP = [
+  ['Putar dan pindah posisi', [
+    ['Spasi', 'Putar / jeda pratinjau'],
+    ['← →', 'Garis merah mundur / maju 0,1 dtk (dengan Shift: 1 dtk)'],
+    ['Home / End', 'Ke awal / ke akhir video'],
+    ['PgUp / PgDn', 'Ke adegan sebelumnya / berikutnya'],
+    ['+ / −  dan  0', 'Perbesar / perkecil timeline, dan pas ke layar']
+  ]],
+  ['Edit elemen terpilih', [
+    ['S', 'Potong di garis merah (gambar terpilih, klip video, atau narasi)'],
+    ['Del / Backspace', 'Hapus elemen, stiker, atau potongan yang dipilih'],
+    ['Ctrl + C', 'Salin elemen terpilih'],
+    ['Ctrl + X', 'Potong (salin lalu hapus)'],
+    ['Ctrl + V', 'Tempel di garis merah. Gambar dari clipboard (screenshot, hasil Gemini) juga langsung jadi elemen baru'],
+    ['Ctrl + D', 'Gandakan elemen terpilih'],
+    ['Ctrl + Z', 'Urungkan'],
+    ['[  dan  ]', 'Mulai / selesai elemen tepat di garis merah'],
+    ['Esc', 'Batalkan pilihan']
+  ]],
+  ['Tambah dan proyek', [
+    ['G', 'Tambah gambar ke adegan'],
+    ['T', 'Tambah teks'],
+    ['N', 'Adegan baru'],
+    ['Ctrl + S', 'Simpan proyek'],
+    ['Ctrl + O', 'Buka proyek'],
+    ['Ctrl + E', 'Buka panel ekspor'],
+    ['?', 'Tampilkan daftar ini']
+  ]]
+];
+
+var modal = $('#keyModal'), lastFocus = null, lastSel = 'item', spaceUp = false;
+
+/* ---------- daftar bantuan ---------- */
+(function build() {
+  var host = $('#keyList'); if (!host) return;
+  HELP.forEach(function (g) {
+    var h = document.createElement('h3'); h.textContent = g[0]; host.appendChild(h);
+    var dl = document.createElement('dl');
+    g[1].forEach(function (r) {
+      var dt = document.createElement('dt'), dd = document.createElement('dd');
+      r[0].split('  dan  ').forEach(function (grp, gi) {
+        if (gi) dt.appendChild(document.createTextNode(' dan '));
+        grp.split(' + ').forEach(function (k, i) {
+          if (i) dt.appendChild(document.createTextNode(' + '));
+          k.split(' / ').forEach(function (kk, j) {
+            if (j) dt.appendChild(document.createTextNode(' / '));
+            var kb = document.createElement('kbd'); kb.textContent = kk; dt.appendChild(kb);
+          });
+        });
+      });
+      dd.textContent = r[1]; dl.appendChild(dt); dl.appendChild(dd);
+    });
+    host.appendChild(dl);
+  });
+})();
+function helpOpen() { return modal && !modal.hidden; }
+function openHelp() { if (!modal) return; lastFocus = document.activeElement; modal.hidden = false; document.body.classList.add('modal-open'); var c = $('#keyClose'); if (c) c.focus(); }
+function closeHelp() { if (!modal) return; modal.hidden = true; document.body.classList.remove('modal-open'); try { if (lastFocus && lastFocus.focus) lastFocus.focus(); } catch (e) {} }
+if ($('#keyHelp')) $('#keyHelp').addEventListener('click', openHelp);
+if ($('#keyClose')) $('#keyClose').addEventListener('click', closeHelp);
+if (modal) modal.addEventListener('click', function (e) { if (e.target === modal) closeHelp(); });
+K.openKeyHelp = openHelp;
+
+/* ---------- bantu ---------- */
+function typing(t) { return !!(t && t.closest && t.closest('textarea,select,[contenteditable="true"],input:not([type=checkbox]):not([type=button]):not([type=radio]):not([type=range])')); }
+function aiOpen() { var m = $('#aiModal'); return m && !m.hidden; }
+function say(t, kind) { K.setMsg(t, kind); }
+function curSticker() { var r = null; if (ui.stickerId != null) state.stickers.forEach(function (x) { if (x.id === ui.stickerId) r = x; }); return r; }
+function total() { return K.total(); }
+function seek(t) { if (state.playing) K.pause(); K.seekGlobal(clamp(t, 0, Math.max(0, total() - 0.001))); }
+function sceneStarts() { return K.layoutTimes().filter(function (x) { return x.kind === 'scene'; }).map(function (x) { return x.start; }); }
+function togglePlay() {
+  if (!state.scenes.length) return;
+  if (state.playing) K.pause(); else { K.play(K.getT(), { onTick: K.uiTick }); K.syncPlayBtn(); }
+}
+function segMode() { return lastSel === 'seg' && K.segCur && K.segCur(); }
+
+function doDelete() {
+  var s = K.selScene();
+  if (segMode()) { K.segDelete(); return; }
+  var st = curSticker();
+  if (st) {
+    state.stickers.splice(state.stickers.indexOf(st), 1); ui.stickerId = null;
+    K.renderStickers(); K.render(K.getT()); say('Stiker dihapus.', 'ok'); return;
+  }
+  var it = K.selItem();
+  if (s && it) { K.deleteItem(s, it); say('Elemen dihapus. Ctrl+Z untuk membatalkan.', 'ok'); return; }
+  if (K.segCur && K.segCur()) { K.segDelete(); return; }
+  say('Pilih dulu elemen yang mau dihapus: klik barnya di timeline atau klik gambarnya di layar.');
+}
+function doSplit() {
+  var s = K.selScene(); if (!s) return;
+  var it = K.selItem();
+  if (!segMode() && it && it.kind === 'image') {
+    var h = K.headLocal(s);
+    if (h != null && h > it.start + 0.2 && h < K.itemEnd(s, it) - 0.2) { K.splitItem(s, it); return; }
+  }
+  if (K.segCur && K.segCur()) { K.segSplit(); return; }
+  if (it) { K.splitItem(s, it); return; }
+  say('Untuk memotong: pilih dulu gambarnya di timeline, atau pilih adegan klip video / narasi. Lalu geser garis merah ke titik potong dan tekan S.');
+}
+function doCopy() { return K.itemCopy(); }
+function doDup() {
+  var s = K.selScene(), it = K.selItem();
+  if (s && it) { K.duplicateItem(s, it); say('Elemen digandakan.', 'ok'); } else say('Pilih dulu elemen yang mau digandakan.');
+}
+function clearSel() {
+  if (ui.itemId != null) K.selectItem(null);
+  if (ui.stickerId != null && K.selectSticker) K.selectSticker(null);
+  lastSel = 'item';
+}
+function click(id) { var b = $('#' + id); if (b && !b.disabled) b.click(); }
+
+/* ---------- pelacak pilihan terakhir (potongan klip/narasi atau elemen) ---------- */
+document.addEventListener('pointerdown', function (e) {
+  var t = e.target; if (!t || !t.closest) return;
+  if (t.closest('.vseg')) lastSel = 'seg';
+  else if (t.closest('#tlInner') || t.closest('#stkInner') || t.closest('#stage') || t.closest('canvas')) lastSel = 'item';
+}, true);
+
+/* ---------- papan ketik ---------- */
+document.addEventListener('keydown', function (e) {
+  if (e.isComposing || e.defaultPrevented && !helpOpen()) return;
+  var mod = e.ctrlKey || e.metaKey, k = e.key, kl = k.length === 1 ? k.toLowerCase() : k;
+  if (helpOpen()) {
+    if (k === 'Escape' || k === '?') { e.preventDefault(); closeHelp(); }
+    else if (k === 'Tab') { e.preventDefault(); var c = $('#keyClose'); if (c) c.focus(); }
+    return;
+  }
+  if (aiOpen()) return;
+  /* simpan / buka / ekspor tetap jalan walau fokus di kolom isian */
+  if (mod && !e.altKey && !e.shiftKey && (kl === 's' || kl === 'o' || kl === 'e')) {
+    e.preventDefault();
+    if (state.exporting) return;
+    click(kl === 's' ? 'prjSave' : kl === 'o' ? 'prjOpen' : 'hdrExport'); return;
+  }
+  if (typing(e.target)) return;
+  if (state.exporting) { if (k === ' ') e.preventDefault(); return; }
+  if (e.altKey) return;
+
+  if (k === ' ' && !mod) {
+    if (e.repeat) { e.preventDefault(); return; }
+    e.preventDefault(); spaceUp = true; togglePlay(); return;
+  }
+  if (mod) {
+    if (kl === 'z' && !e.shiftKey) { e.preventDefault(); K.undo(); }
+    else if (kl === 'd') { e.preventDefault(); doDup(); }
+    return;   /* Ctrl+C / X / V ditangani lewat event salin, potong, tempel */
+  }
+  if (k === 'Delete' || k === 'Backspace') { e.preventDefault(); doDelete(); return; }
+  if (kl === 's') { e.preventDefault(); doSplit(); return; }
+  if (k === 'ArrowLeft' || k === 'ArrowRight') {
+    if (e.target.closest && e.target.closest('input[type=range]')) return;
+    e.preventDefault(); seek(K.getT() + (k === 'ArrowLeft' ? -1 : 1) * (e.shiftKey ? 1 : 0.1)); return;
+  }
+  if (k === 'Home') { e.preventDefault(); seek(0); return; }
+  if (k === 'End') { e.preventDefault(); seek(total()); return; }
+  if (k === 'PageUp' || k === 'PageDown') {
+    var st = sceneStarts(), t = K.getT(), i, tgt = null;
+    if (k === 'PageDown') { for (i = 0; i < st.length; i++) if (st[i] > t + 0.01) { tgt = st[i]; break; } if (tgt == null) tgt = total(); }
+    else { for (i = st.length - 1; i >= 0; i--) if (st[i] < t - 0.3) { tgt = st[i]; break; } if (tgt == null) tgt = 0; }
+    e.preventDefault(); seek(tgt); return;
+  }
+  if (k === '[' || k === ']') { e.preventDefault(); K.itemMark(k === '[' ? 'start' : 'end'); return; }
+  if (k === '+' || k === '=') { e.preventDefault(); K.zoomTo(ui.zoom * 1.6); return; }
+  if (k === '-' || k === '_') { e.preventDefault(); K.zoomTo(ui.zoom / 1.6); return; }
+  if (k === '0') { e.preventDefault(); K.zoomTo(1); return; }
+  if (k === 'Escape') { clearSel(); return; }
+  if (k === '?' || k === 'F1') { e.preventDefault(); openHelp(); return; }
+  if (kl === 'g') { e.preventDefault(); click('addDraw'); return; }
+  if (kl === 't') { e.preventDefault(); click('addText'); return; }
+  if (kl === 'n') { e.preventDefault(); click('newScene'); return; }
+}, false);
+/* spasi di tombol: jangan ikut menekan tombol itu */
+document.addEventListener('keyup', function (e) { if (e.key === ' ' && spaceUp) { spaceUp = false; e.preventDefault(); } }, true);
+
+/* ---------- salin, potong, tempel ---------- */
+document.addEventListener('copy', function (e) {
+  if (typing(e.target) || aiOpen() || helpOpen()) return;
+  var sel = window.getSelection && window.getSelection().toString(); if (sel) return;
+  if (!K.selItem()) return;
+  if (doCopy()) { try { e.clipboardData.setData('text/plain', 'coretan-item'); } catch (x) {} e.preventDefault(); }
+});
+document.addEventListener('cut', function (e) {
+  if (typing(e.target) || aiOpen() || helpOpen() || state.exporting) return;
+  var s = K.selScene(), it = K.selItem(); if (!s || !it) return;
+  if (doCopy()) { try { e.clipboardData.setData('text/plain', 'coretan-item'); } catch (x) {} e.preventDefault(); K.deleteItem(s, it); }
+});
+document.addEventListener('paste', function (e) {
+  if (typing(e.target) || aiOpen() || helpOpen() || state.exporting) return;
+  var cd = e.clipboardData; if (!cd) return;
+  var files = Array.prototype.slice.call(cd.files || []).filter(function (f) { return /^image\//.test(f.type); });
+  if (files.length) {
+    var s0 = K.selScene();
+    if (s0 && s0.video) { say('Gambar tidak bisa ditempel ke adegan klip video. Pilih adegan gambar dulu.'); return; }
+    e.preventDefault(); K.addImageFiles(files); return;
+  }
+  var txt = cd.getData('text/plain') || '';
+  if (K.hasItemClip() && (txt === 'coretan-item' || !txt)) { e.preventDefault(); if (!K.itemPaste()) say('Pilih adegan gambar dulu untuk menempel.'); }
+});
+})();
+
+(function () {
+'use strict';
 var K = window.__coretan, $ = K.$, state = K.state;
 var prev = $('#handPrev'), pc = prev.getContext('2d');
 
@@ -6637,7 +7090,7 @@ async function save(ev) {
 /* ---------- buka ---------- */
 var CTRL = [['setRes', 'res', 'change'], ['setFps', 'fps', 'change'], ['setBg', 'bg', 'input'], ['setHand', 'hand', 'change', 1], ['setSpeed', 'speed', 'input'], ['setDetail', 'sketchDetail', 'input'],
   ['setFlow', 'flow', 'change'], ['setTextFont', 'textFont', 'change'], ['setTextColor', 'textColor', 'input'], ['setTool', 'tool', 'change'], ['setSkin', 'skin', 'change'],
-  ['trType', 'trType', 'change'], ['trDir', 'trDir', 'change'], ['trSym', 'trSym', 'change'], ['trColor', 'trColor', 'input'], ['trSize', 'trSize', 'input'], ['trDur', 'trDur', 'input'],
+  ['trType', 'trType', 'change'], ['trDir', 'trDir', 'change'], ['trSym', 'trSym', 'change'], ['trColor', 'trColor', 'input'], ['trSize', 'trSize', 'input'], ['trDur', 'trDur', 'input'], ['inType', 'inType', 'change'], ['inDir', 'inDir', 'change'], ['inDur', 'inDur', 'input'],
   ['setNarr', 'narrVol', 'input'], ['setClip', 'clipVol', 'input'], ['setDenoise', 'denoise', 'change'], ['setBgm', 'bgmVol', 'input'], ['setDuck', 'duck', 'change', 1]];
 function applySettings(set) {
   var k; for (k in set) state.set[k] = set[k];
