@@ -143,6 +143,13 @@ input[type=color]{height:38px;width:56px;padding:2px;border:1px solid var(--line
 .narr-label{font:700 12px/1 var(--font-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2)}
 .narr-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;min-width:0}
 .btn.rec{color:#b42318;border-color:color-mix(in srgb,#b42318 50%,var(--line));font-weight:700}
+.frame{position:relative}
+.countov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(10,16,14,.42);color:#fff;z-index:5;pointer-events:none}
+.countov[hidden]{display:none}
+.countov b{font:800 clamp(64px,22cqmin,170px)/1 var(--font-body);min-width:1.4em;text-align:center;background:rgba(0,0,0,.35);border-radius:50%;padding:.12em .2em;animation:cdpop .9s ease-out both}
+.countov span{font:700 clamp(14px,3.2cqmin,24px)/1 var(--font-body);text-shadow:0 1px 6px rgba(0,0,0,.6)}
+@keyframes cdpop{0%{transform:scale(1.35);opacity:.2}25%{transform:scale(1);opacity:1}100%{transform:scale(.92);opacity:.9}}
+@media (prefers-reduced-motion:reduce){.countov b{animation:none}}
 .recdot{width:12px;height:12px;border-radius:50%;background:#e11d48;animation:pulse 1s ease-in-out infinite}
 @keyframes pulse{50%{opacity:.25}}
 .meter{flex:1 1 120px;min-width:80px;height:10px;border-radius:5px;background:var(--surface-2);overflow:hidden}
@@ -430,7 +437,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
         <button type="button" id="tbStk"><i aria-hidden="true">◇</i>Stiker</button>
         <button type="button" id="tbAI"><i aria-hidden="true">✨</i>AI</button>
       </div>
-      <div class="frame"><canvas id="stage" width="1280" height="720" aria-label="Pratinjau video. Seret elemen untuk menggeser, seret pojok kanan bawah untuk mengubah ukuran."></canvas></div>
+      <div class="frame"><canvas id="stage" width="1280" height="720" aria-label="Pratinjau video. Seret elemen untuk menggeser, seret pojok kanan bawah untuk mengubah ukuran."></canvas><div class="countov" id="countOv" hidden role="status" aria-live="assertive"><b id="countNum">3</b><span>Bersiap merekam…</span></div></div>
       <div class="transport">
         <button class="btn primary" id="playBtn" type="button">Putar</button>
         <input id="scrub" type="range" min="0" max="1" step="0.01" value="0" aria-label="Posisi video">
@@ -507,7 +514,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
           <div class="narr" id="narr">
             <span class="narr-label">Narasi adegan ini</span>
             <div class="narr-row" id="narrIdle">
-              <button class="btn small rec" id="recBtn" type="button">● Rekam suara</button>
+              <button class="btn small rec" id="recBtn" type="button" title="Pintasan: tombol R">● Rekam suara</button>
+              <label class="chk" id="recCountRow" title="Hitung mundur 3 detik dengan bunyi tit sebelum rekaman dimulai"><input type="checkbox" id="recCount" checked> Hitung mundur 3 dtk</label>
               <button class="btn small" id="narrUp" type="button">Unggah audio</button>
               <input id="narrInput" type="file" accept="audio/*" hidden>
               <input id="narrCapture" type="file" accept="audio/*" capture hidden>
@@ -4443,7 +4451,8 @@ function updateNarrUI(s) {
   $('#narrName').textContent = s.audio ? s.audioName + ' · ' + r1(s.audio.duration).toFixed(1) + ' dtk' : 'Belum ada narasi';
   $('#narrListen').hidden = !s.audio; $('#narrDel').hidden = !s.audio;
   $('#narrListenRaw').hidden = !s.audio || state.set.denoise === 'off';
-  $('#narrListen').textContent = listen && listenMode === 'clean' ? '■ Berhenti' : (state.set.denoise === 'off' ? '▶ Dengar' : '▶ Dengar (bersih)');
+  var pend = !!s.audio && state.set.denoise !== 'off' && !(s.clean && s.cleanLvl === state.set.denoise && s.cleanSrc === s.audio);
+  $('#narrListen').textContent = listen && listenMode === 'clean' ? '■ Berhenti' : (state.set.denoise === 'off' ? '▶ Dengar' : pend ? '⏳ Membersihkan…' : '▶ Dengar (bersih)');
   $('#narrListenRaw').textContent = listen && listenMode === 'raw' ? '■ Berhenti' : '▶ Dengar asli';
   $('#recBtn').textContent = s.audio ? '● Rekam ulang' : '● Rekam suara';
 }
@@ -4503,7 +4512,7 @@ $('#narrListenRaw').addEventListener('click', function () { doListen('raw'); });
 K.onCleanDone = function () { var s = K.selScene(); if (s && !s.video) updateNarrUI(s); };
 
 /* ---------- rekam suara ---------- */
-var rs = { active: false, mr: null, stream: null, chunks: [], t0: 0, raf: 0, an: null, src: null, cancel: false, sceneId: null };
+var rs = { counting: false, cdTimer: 0, cdT0: 0, active: false, mr: null, stream: null, chunks: [], t0: 0, raf: 0, an: null, src: null, cancel: false, sceneId: null };
 function pickRecMime() {
   var c = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'];
   for (var i = 0; i < c.length; i++) { try { if (MediaRecorder.isTypeSupported(c[i])) return c[i]; } catch (e) {} }
@@ -4512,7 +4521,8 @@ function pickRecMime() {
 function recTick() {
   if (!rs.active) return;
   var t = (performance.now() - rs.t0) / 1000;
-  $('#recTime').textContent = fmtT(t).replace(/^(\d+:\d\d)$/, '$1.0');
+  if (rs.counting) { var n = Math.max(1, 3 - Math.floor((performance.now() - rs.cdT0) / 1000)); $('#recTime').textContent = 'Bersiap… ' + n; if ($('#countNum').textContent !== String(n)) setCountNum(n); }
+  else $('#recTime').textContent = fmtT(t).replace(/^(\d+:\d\d)$/, '$1.0');
   if (rs.an) {
     var d = new Uint8Array(rs.an.fftSize); rs.an.getByteTimeDomainData(d);
     var m = 0; for (var i = 0; i < d.length; i++) { var v = Math.abs(d[i] - 128) / 128; if (v > m) m = v; }
@@ -4520,7 +4530,25 @@ function recTick() {
   }
   rs.raf = requestAnimationFrame(recTick);
 }
+/* ---------- hitung mundur sebelum rekam: 3 kali "tit", rekaman mulai tepat setelah hitungan ke-3 ---------- */
+function countOn() { return !$('#recCount') || $('#recCount').checked; }
+try { if (localStorage.getItem('coretan.recCount') === '0') $('#recCount').checked = false; } catch (e) {}
+$('#recCount').addEventListener('change', function () { try { localStorage.setItem('coretan.recCount', this.checked ? '1' : '0'); } catch (e) {} });
+function setCountNum(n) {
+  var b = $('#countNum'); b.textContent = String(n);
+  b.style.animation = 'none'; void b.offsetWidth; b.style.animation = '';
+}
+function beep(at, hi) {
+  try {
+    var c = K.ac(), o = c.createOscillator(), g = c.createGain(), t = Math.max(at, c.currentTime);
+    o.type = 'sine'; o.frequency.value = hi ? 1568 : 1046;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.38, t + 0.008); g.gain.setValueAtTime(0.38, t + 0.09); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.13);
+    o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + 0.16);
+  } catch (e) {}
+}
+function endCountUI() { rs.counting = false; clearTimeout(rs.cdTimer); rs.cdTimer = 0; $('#countOv').hidden = true; }
 function cleanupRec() {
+  endCountUI();
   cancelAnimationFrame(rs.raf);
   if (rs.stream) rs.stream.getTracks().forEach(function (t) { try { t.stop(); } catch (e) {} });
   try { if (rs.src) rs.src.disconnect(); } catch (e) {}
@@ -4534,11 +4562,13 @@ function startRec() {
     return;
   }
   K.stop(false); stopListen();
+  try { K.ac().resume(); } catch (e) {}   /* dalam klik pengguna, supaya bunyi tit tidak diblokir */
   navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }).then(function (stream) {
     var mime = pickRecMime(), mr;
     try { mr = new MediaRecorder(stream, mime ? { mimeType: mime } : {}); }
     catch (e) { stream.getTracks().forEach(function (t) { t.stop(); }); narrHint('Perekam gagal dibuat di browser ini. Coba Unggah audio.', true); return; }
     rs.stream = stream; rs.mr = mr; rs.chunks = []; rs.cancel = false; rs.sceneId = s.id; rs.active = true; rs.t0 = performance.now();
+    rs.counting = countOn();
     try {
       var c = K.ac(); c.resume();
       rs.src = c.createMediaStreamSource(stream); rs.an = c.createAnalyser(); rs.an.fftSize = 512; rs.src.connect(rs.an);
@@ -4555,10 +4585,22 @@ function startRec() {
       K.decodeFile(blob).then(function (buf) { setNarration(sc, buf, 'Rekaman suara', blob); })
         .catch(function () { K.setMsg('Rekaman tidak bisa diproses di browser ini. Coba Unggah audio.', 'err'); K.renderEditor(); });
     };
-    mr.start(250);
     narrHint('');
-    updateNarrUI(s); recTick();
-    K.setMsg('Merekam… bicaralah, tekan Selesai jika sudah.');
+    function begin() {
+      if (!rs.active || rs.mr !== mr) return;
+      endCountUI(); rs.t0 = performance.now();
+      try { mr.start(250); } catch (e) { cleanupRec(); K.renderEditor(); narrHint('Perekam gagal dimulai. Coba Unggah audio.', true); return; }
+      K.setMsg('Merekam… bicaralah, tekan Selesai jika sudah.');
+    }
+    updateNarrUI(s);
+    if (rs.counting) {
+      rs.cdT0 = performance.now(); setCountNum(3); $('#countOv').hidden = false;
+      var c0 = K.ac(), base = c0.currentTime + 0.05;
+      beep(base, false); beep(base + 1, false); beep(base + 2, false);
+      rs.cdTimer = setTimeout(begin, 3050);
+      K.setMsg('Bersiap… rekaman mulai setelah hitungan ketiga.');
+    } else begin();
+    recTick();
   }).catch(function (err) {
     var n = err && err.name;
     if (n === 'NotAllowedError' || n === 'SecurityError') narrHint('Izin mikrofon ditolak. Izinkan mikrofon untuk halaman ini di pengaturan browser, atau di dalam claude.ai gunakan versi mandiri. Alternatif: unggah rekaman yang sudah jadi.', true);
@@ -4566,7 +4608,7 @@ function startRec() {
     else narrHint('Mikrofon tidak bisa dipakai (' + (n || 'error') + '). Coba Unggah audio.', true);
   });
 }
-function stopRec(cancel) { if (!rs.active || !rs.mr) return; rs.cancel = !!cancel; try { rs.mr.stop(); } catch (e) { cleanupRec(); K.renderEditor(); } }
+function stopRec(cancel) { if (rs.active && rs.counting) { cleanupRec(); K.renderEditor(); K.setMsg('Rekaman dibatalkan.'); return; } if (!rs.active || !rs.mr) return; rs.cancel = !!cancel; try { rs.mr.stop(); } catch (e) { cleanupRec(); K.renderEditor(); } }
 $('#recBtn').addEventListener('click', startRec);
 $('#recStop').addEventListener('click', function () { stopRec(false); });
 $('#recCancel').addEventListener('click', function () { stopRec(true); K.setMsg('Rekaman dibatalkan.'); });
@@ -5229,7 +5271,7 @@ K.refreshUI = function () {
   if (K.renderStickers) K.renderStickers();
 };
 
-K.deleteItem = deleteItem; K.duplicateItem = duplicateItem; K.headLocal = headLocal; K.zoomTo = zoomTo;
+K.recActive = function () { return !!rs.active; }; K.deleteItem = deleteItem; K.duplicateItem = duplicateItem; K.headLocal = headLocal; K.zoomTo = zoomTo;
 })();
 
 (function () {
@@ -6649,6 +6691,7 @@ var HELP = [
     ['Esc', 'Batalkan pilihan']
   ]],
   ['Tambah dan proyek', [
+    ['R', 'Rekam suara adegan terpilih (hitung mundur 3 dtk), tekan lagi untuk selesai. Esc membatalkan'],
     ['G', 'Tambah gambar ke adegan'],
     ['T', 'Tambah teks'],
     ['N', 'Adegan baru'],
@@ -6768,6 +6811,13 @@ document.addEventListener('keydown', function (e) {
   if (typing(e.target)) return;
   if (state.exporting) { if (k === ' ') e.preventDefault(); return; }
   if (e.altKey) return;
+  if (K.recActive && K.recActive()) {   /* sedang menghitung mundur atau merekam */
+    if (kl === 'r' && !mod) { e.preventDefault(); click('recStop'); }
+    else if (k === 'Escape') { e.preventDefault(); click('recCancel'); }
+    else if (k === ' ') e.preventDefault();
+    return;
+  }
+  if (kl === 'r' && !mod) { e.preventDefault(); click('recBtn'); return; }
 
   if (k === ' ' && !mod) {
     if (e.repeat) { e.preventDefault(); return; }
