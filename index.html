@@ -234,6 +234,16 @@ input[type=color]{height:38px;width:56px;padding:2px;border:1px solid var(--line
 .keyrow{display:flex;gap:8px}
 .keyrow input{flex:1;min-width:0}
 body.modal-open{overflow:hidden}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.title-wrap{display:block;margin-top:2px;min-width:0}
+.title-in{width:100%;max-width:340px;font:600 14px/1.2 var(--font-body);padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink)}
+.title-in::placeholder{color:var(--ink-2);font-weight:500}
+.title-in:focus{outline:2px solid var(--accent);outline-offset:1px}
+.namebox{display:flex;align-items:center;gap:6px}
+.namebox input{flex:1;min-width:0}
+.namebox i{font:600 13px/1 var(--font-mono);color:var(--ink-2);font-style:normal}
+@media (min-width:1100px){.brand{flex-direction:row;align-items:center;gap:14px}.title-wrap{margin:0;width:260px}}
+
 #keyList h3{margin:14px 0 6px;font:700 12px/1 var(--font-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2)}
 #keyList dl{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 14px;margin:0;align-items:baseline}
 #keyList dt{white-space:nowrap}
@@ -423,7 +433,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   <header class="top">
     <div class="brand">
       <h1 class="logo"><img class="logo-img" id="logoImg" src="coretanku.png" alt="Coretan"><span class="logo-txt">Coretan</span></h1>
-      <p class="tag">Ubah gambar dan narasi jadi video yang seolah digambar tangan</p>
+      <label class="title-wrap"><span class="vh">Judul proyek</span><input id="prjTitle" class="title-in" type="text" maxlength="80" autocomplete="off" placeholder="Judul proyek (jadi nama file)" title="Judul proyek. Dipakai sebagai nama file saat Simpan proyek, dan sebagai nama video bila kolom Nama file video dikosongkan."></label>
     </div>
     <div class="top-r"><span class="chip" id="modeChip">memuat…</span><button class="btn small" id="prjOpen" type="button" title="Buka file proyek (.coretan) untuk melanjutkan pekerjaan">Buka proyek</button><button class="btn small" id="prjSave" type="button" title="Simpan semua adegan, gambar, narasi, dan pengaturan ke satu file .coretan">Simpan proyek</button><button class="btn small" id="prjFolder" type="button" hidden title="Pilih folder tempat proyek disimpan. Setelah dipilih, tombol Simpan proyek langsung menulis ke folder itu tanpa dialog unduhan. Belum dipilih: proyek disimpan lewat unduhan biasa.">📁 Pilih folder</button><button class="btn small" id="keyHelp" type="button" title="Daftar pintasan keyboard (tekan ? kapan saja)">⌨ Pintasan</button><input id="prjInput" type="file" accept=".coretan,application/octet-stream" hidden><button class="btn primary small" id="hdrExport" type="button">Ekspor video</button></div>
   </header>
@@ -549,12 +559,6 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
           <div class="panel">
         <h2>Pengaturan</h2>
         <div class="grid2">
-          <label class="f">Resolusi
-            <select id="setRes"><option value="720">720p (ringan)</option><option value="1080">1080p (penuh)</option></select>
-          </label>
-          <label class="f">Frame per detik
-            <select id="setFps"><option value="24">24 fps</option><option value="30">30 fps</option><option value="60">60 fps</option></select>
-          </label>
           <label class="f">Warna latar
             <input id="setBg" type="color" value="#ffffff">
           </label>
@@ -703,6 +707,21 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       <div class="tabpane off" id="paneExp">
         <div class="panel" id="exportPanel">
         <h2>Ekspor video</h2>
+        <div class="grid2" id="expOpts">
+          <label class="f">Resolusi
+            <select id="setRes"><option value="360">360p (file kecil)</option><option value="480">480p</option><option value="720">720p (seimbang)</option><option value="1080">1080p (tajam)</option></select>
+          </label>
+          <label class="f">Kualitas
+            <select id="setQual"><option value="low">Hemat (file kecil)</option><option value="std" selected>Standar</option><option value="high">Tinggi (file besar)</option></select>
+          </label>
+          <label class="f">Frame per detik
+            <select id="setFps"><option value="24">24 fps</option><option value="30">30 fps</option><option value="60">60 fps</option></select>
+          </label>
+          <label class="f">Nama file video
+            <span class="namebox"><input id="vidName" type="text" maxlength="80" autocomplete="off" placeholder="coretan-video"><i id="vidExt">.mp4</i></span>
+          </label>
+        </div>
+        <p class="hint" id="exportEst"></p>
         <p class="hint" id="exportInfo"></p>
         <button class="btn primary wide" id="exportBtn" type="button">Ekspor video</button>
         <button class="btn wide" id="cancelBtn" type="button" hidden>Batal</button>
@@ -2720,7 +2739,7 @@ var state = {
   scenes: [], bgm: null, playing: false, exporting: false, fresh: true,
   set: { res: '720', fps: 30, bg: '#ffffff', fit: 'contain', hand: true, speed: 4, tool: 'pulpen', skin: 'sawo', sketchDetail: 50,
          narrVol: 100, clipVol: 100, bgmVol: 25, duck: false, denoise: 'mid', handCustom: null, flow: 'tulis', textFont: 'kalam', textSize: 'm', textColor: '#142320',
-         trType: 'pan', trDir: 'right', trSym: 'arrow', trColor: '#1D4ED8', trSize: 100, trDur: 1.6, inType: 'fade', inDir: 'right', inDur: 0.7 }
+         trType: 'pan', trDir: 'right', trSym: 'arrow', trColor: '#1D4ED8', trSize: 100, trDur: 1.6, inType: 'fade', inDir: 'right', inDur: 0.7, qual: 'std', title: '', vidName: '' }
 };
 var uid = 0, curT = 0;
 
@@ -2810,6 +2829,18 @@ function itemEnd(s, it) {
   var e = it.end == null ? s.dur : Math.min(it.end, s.dur);
   return Math.max(e, Math.min(s.dur, it.start + 0.2));
 }
+/* nama file yang aman untuk Windows, macOS, dan HP */
+function fileBase(s, fb) {
+  s = String(s == null ? '' : s).replace(/[\\\/:*?"<>|\u0000-\u001f]/g, ' ').replace(/\s+/g, ' ').replace(/\.(mp4|webm|coretan)\s*$/i, '').trim().replace(/^\.+|\.+$/g, '').trim().slice(0, 80).trim();
+  if (/^(con|prn|aux|nul|com\d|lpt\d)$/i.test(s)) s += '_';
+  return s || fb || '';
+}
+/* bitrate video: acuan 1080p 30 fps (Mbps) per tingkat kualitas, disesuaikan ukuran dan fps */
+var QMBPS = { low: 4, std: 8, high: 14 };
+function vidBitrate(W, H, fps) {
+  var m = (QMBPS[state.set.qual] || 8) * 1e6 * (W * H / 2073600) * Math.pow(Math.max(1, fps) / 30, 0.7);
+  return Math.round(Math.max(500000, m));
+}
 function trDur() { return state.set.trType === 'none' ? 0 : state.set.trDur; }
 function total() {
   var n = state.scenes.length, t = state.scenes.reduce(function (a, x) { return a + x.dur; }, 0);
@@ -2841,7 +2872,7 @@ var sampleSticker = '<svg xmlns="http://www.w3.org/2000/svg" width="400" height=
 
 window.__coretan = { $: $, cv: cv, cx: cx, state: state, fmt: fmt, svgURI: svgURI, setMsg: setMsg, ac: ac, decodeFile: decodeFile,
   sampleSVGs: sampleSVGs, sampleSticker: sampleSticker, sampleSticker2: sampleSticker2, newScene: newScene, newImageItem: newImageItem, newTextItem: newTextItem, newSceneObj: newSceneObj, itemEnd: itemEnd, loadImage: loadImage, total: total, layoutTimes: layoutTimes,
-  getT: function () { return curT; }, setT: function (v) { curT = v; } };
+  fileBase: fileBase, vidBitrate: vidBitrate, getT: function () { return curT; }, setT: function (v) { curT = v; } };
 })();
 
 (function () {
@@ -4082,13 +4113,24 @@ $('#bgmDel').addEventListener('click', function () {
 });
 
 /* ---------- pengaturan ---------- */
-function applyRes() {
-  var h = state.set.res === '1080' ? 1080 : 720, w = Math.round(h * 16 / 9);
-  cv.width = w; cv.height = h;
+/* ukuran kanvas: pratinjau minimal 720p supaya tetap tajam saat mengedit; ekspor memakai resolusi pilihan */
+function expH() { var r = parseInt(state.set.res, 10); return r >= 240 && r <= 2160 ? r : 720; }
+K.expSize = function () { var h = expH(); return { w: Math.round(h * 16 / 9), h: h }; };
+K.setCanvas = function (h) {
+  var w = Math.round(h * 16 / 9);
+  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
   K.render(K.getT());
+};
+function applyRes() {
+  K.setCanvas(state.exporting ? expH() : Math.max(720, expH()));
   refreshExportInfo();
 }
 $('#setRes').addEventListener('change', function (e) { state.set.res = e.target.value; applyRes(); });
+$('#setQual').addEventListener('change', function (e) { state.set.qual = e.target.value; refreshExportInfo(); });
+function vidPlace() { $('#vidName').placeholder = K.fileBase(state.set.title, 'coretan-video'); }
+$('#prjTitle').addEventListener('input', function (e) { state.set.title = e.target.value; vidPlace(); });
+$('#vidName').addEventListener('input', function (e) { state.set.vidName = e.target.value; });
+K.vidPlace = vidPlace;
 $('#setFps').addEventListener('change', function (e) { state.set.fps = parseInt(e.target.value, 10); refreshExportInfo(); });
 $('#setBg').addEventListener('input', function (e) { state.set.bg = e.target.value; K.render(K.getT()); });
 $('#setHand').addEventListener('change', function (e) { state.set.hand = e.target.checked; K.render(K.getT()); });
@@ -7097,7 +7139,7 @@ folderBtn && folderBtn.addEventListener('click', async function () {
 });
 
 var opening = false, clearAll0 = K.clearAll;
-K.clearAll = function () { if (!opening) projName = null; return clearAll0.apply(this, arguments); };   /* proyek baru tidak boleh menimpa file proyek lama */
+K.clearAll = function () { if (!opening) { projName = null; state.set.title = ''; state.set.vidName = ''; $('#prjTitle').value = ''; $('#vidName').value = ''; if (K.vidPlace) K.vidPlace(); } return clearAll0.apply(this, arguments); };   /* proyek baru tidak boleh menimpa file proyek lama */
 var busy = false;
 function setBusy(on) { busy = on; ['prjSave', 'prjOpen', 'prjFolder'].forEach(function (id) { var b = $('#' + id); if (b) b.disabled = on || !!state.exporting; }); }
 K.syncProjectBtns = function () { setBusy(busy); };
@@ -7123,7 +7165,8 @@ async function save(ev) {
     new DataView(len.buffer).setUint32(0, hj.length, true);
     var out = new Blob([MAGIC, len, hj].concat(blobs), { type: 'application/octet-stream' });
     var fresh = !!(ev && ev.shiftKey);
-    var name = (!projName || fresh) ? 'proyek-coretan-' + fmtDate() + '.coretan' : projName;
+    var tb = K.fileBase(state.set.title, '');
+    var name = tb ? tb + (fresh ? '-' + fmtDate() : '') + '.coretan' : ((!projName || fresh) ? 'proyek-coretan-' + fmtDate() + '.coretan' : projName);
     if (dir) await writeToDir(dir, out, name); else await deliver(out, name);
     projName = name;
     savedFp = d.fp;
@@ -7140,7 +7183,7 @@ async function save(ev) {
 /* ---------- buka ---------- */
 var CTRL = [['setRes', 'res', 'change'], ['setFps', 'fps', 'change'], ['setBg', 'bg', 'input'], ['setHand', 'hand', 'change', 1], ['setSpeed', 'speed', 'input'], ['setDetail', 'sketchDetail', 'input'],
   ['setFlow', 'flow', 'change'], ['setTextFont', 'textFont', 'change'], ['setTextColor', 'textColor', 'input'], ['setTool', 'tool', 'change'], ['setSkin', 'skin', 'change'],
-  ['trType', 'trType', 'change'], ['trDir', 'trDir', 'change'], ['trSym', 'trSym', 'change'], ['trColor', 'trColor', 'input'], ['trSize', 'trSize', 'input'], ['trDur', 'trDur', 'input'], ['inType', 'inType', 'change'], ['inDir', 'inDir', 'change'], ['inDur', 'inDur', 'input'],
+  ['trType', 'trType', 'change'], ['trDir', 'trDir', 'change'], ['trSym', 'trSym', 'change'], ['trColor', 'trColor', 'input'], ['trSize', 'trSize', 'input'], ['trDur', 'trDur', 'input'], ['setQual', 'qual', 'change'], ['prjTitle', 'title', 'input'], ['vidName', 'vidName', 'input'], ['inType', 'inType', 'change'], ['inDir', 'inDir', 'change'], ['inDur', 'inDur', 'input'],
   ['setNarr', 'narrVol', 'input'], ['setClip', 'clipVol', 'input'], ['setDenoise', 'denoise', 'change'], ['setBgm', 'bgmVol', 'input'], ['setDuck', 'duck', 'change', 1]];
 function applySettings(set) {
   var k; for (k in set) state.set[k] = set[k];
@@ -7219,7 +7262,11 @@ async function openProject(file) {
 
     /* semua bahan siap: ganti proyek yang sedang terbuka */
     K.clearAll();
-    applySettings(h.set || {});
+    h.set = h.set || {};
+    if (h.set.title == null) { var stem = K.fileBase(String(file.name || '').replace(/\.coretan$/i, ''), ''); h.set.title = /^proyek-coretan-\d{8}-\d{4}$/.test(stem) ? '' : stem; }
+    if (h.set.vidName == null) h.set.vidName = '';
+    applySettings(h.set);
+    if (K.vidPlace) K.vidPlace();
     if (state.set.handCustom) { $('#handSize').value = String(state.set.handCustom.size); $('#handSizeLbl').textContent = state.set.handCustom.size + '%'; $('#handSize').dispatchEvent(new Event('input', { bubbles: true })); }
     state.bgm = bgm;
     $('#bgmName').textContent = bgm ? bgm.name : 'Belum ada. Musik diulang mengikuti panjang video.'; $('#bgmDel').hidden = !bgm;
@@ -7285,7 +7332,7 @@ function canOffline() {
 
 async function pickVideo(W, H, fps) {
   var lvl = H >= 1080 ? (fps > 30 ? 0x2a : 0x28) : (fps > 30 ? 0x20 : 0x1f);
-  var bitrate = H >= 1080 ? 8000000 : 4000000;
+  var bitrate = K.vidBitrate(W, H, fps);
   var list = [
     { codec: 'avc1.6400' + hex2(lvl), mux: 'avc' },
     { codec: 'avc1.4D00' + hex2(lvl), mux: 'avc' },
@@ -7393,6 +7440,7 @@ var isPhone = false;
 try { isPhone = window.matchMedia('(pointer:coarse)').matches && Math.min(screen.width, screen.height) < 700; } catch (e) {}
 state.set.res = isPhone ? '720' : '1080';
 $('#setRes').value = state.set.res;
+$('#setQual').value = state.set.qual;
 $('#setFps').value = String(state.set.fps);
 
 var supported = !!(window.MediaRecorder && cv.captureStream);
@@ -7408,10 +7456,13 @@ function refreshExportInfo() {
   var mime = (!off && supported) ? pickMime() : '';
   var fmt = off ? 'MP4' : (/mp4/.test(mime) ? 'MP4' : (mime ? 'WebM' : '-'));
   $('#modeChip').textContent = (isPhone ? 'Mode ringan' : 'Mode penuh') + ' · ' + state.set.res + 'p';
-  var tot = K.total();
+  var tot = K.total(), sz = K.expSize();
+  var mb = (K.vidBitrate(sz.w, sz.h, state.set.fps) + 128000) * tot / 8 / 1048576;
+  $('#vidExt').textContent = '.' + (fmt === 'WebM' ? 'webm' : 'mp4');
+  $('#exportEst').textContent = tot > 0 ? 'Perkiraan ukuran file paling besar sekitar ' + (mb < 10 ? mb.toFixed(1) : Math.round(mb)) + ' MB. Video dengan gambar yang banyak diam biasanya lebih kecil dari itu.' : '';
   var txt;
-  if (off) txt = 'Hasil: MP4 ' + cv.width + '×' + cv.height + ', ' + state.set.fps + ' fps. Dirender frame demi frame, jadi tidak perlu menunggu sepanjang durasi video (' + K.fmt(tot) + ').';
-  else if (supported) txt = 'Hasil: ' + fmt + ' ' + cv.width + '×' + cv.height + ', ' + state.set.fps + ' fps. Direkam real-time, jadi prosesnya selama durasi video (' + K.fmt(tot) + ').';
+  if (off) txt = 'Hasil: MP4 ' + sz.w + '×' + sz.h + ', ' + state.set.fps + ' fps. Dirender frame demi frame, jadi tidak perlu menunggu sepanjang durasi video (' + K.fmt(tot) + ').';
+  else if (supported) txt = 'Hasil: ' + fmt + ' ' + sz.w + '×' + sz.h + ', ' + state.set.fps + ' fps. Direkam real-time, jadi prosesnya selama durasi video (' + K.fmt(tot) + ').';
   else txt = 'Browser ini belum bisa mengekspor video. Coba Chrome atau Safari terbaru.';
   $('#exportInfo').textContent = txt;
   $('#exportBtn').disabled = !(off || supported) || state.exporting || !state.scenes.length;
@@ -7428,7 +7479,7 @@ function anchorSave(name) {
 }
 function saveResult(auto) {
   if (!result.blob) return;
-  var name = 'coretan-video.' + result.ext;
+  var name = (K.fileBase(state.set.vidName, '') || K.fileBase(state.set.title, '') || 'coretan-video') + '.' + result.ext;
   dlPromise.then(function (dl) {
     if (!dl) {
       /* halaman mandiri (mis. GitHub Pages): unduhan biasa, hanya setelah tombol ditekan */
@@ -7454,6 +7505,7 @@ $('#saveBtn').addEventListener('click', function () { saveResult(false); });
 var cancelled = false, offlineMode = false;
 function setExporting(on) {
   state.exporting = on;
+  K.setCanvas(on ? K.expSize().h : Math.max(720, K.expSize().h));
   $('#prog').hidden = !on; $('#exportNote').hidden = !on;
   $('#cancelBtn').hidden = !(on && offlineMode);
   $('#exportNote').textContent = offlineMode ? 'Biarkan tab ini tetap terbuka sampai selesai.' : 'Biarkan layar tetap menyala dan tab ini terbuka sampai selesai. Video direkam selama durasinya berjalan.';
@@ -7489,7 +7541,7 @@ function exportRealtime(tot) {
     var stream = cv.captureStream(state.set.fps);
     dest.stream.getAudioTracks().forEach(function (t) { stream.addTrack(t); });
     var mime = pickMime();
-    var opts = { videoBitsPerSecond: state.set.res === '1080' ? 10000000 : 5000000, audioBitsPerSecond: 128000 };
+    var opts = { videoBitsPerSecond: K.vidBitrate(cv.width, cv.height, state.set.fps), audioBitsPerSecond: 128000 };
     if (mime) opts.mimeType = mime;
     var rec;
     try { rec = new MediaRecorder(stream, opts); }
@@ -7532,6 +7584,7 @@ function exportNow() {
   if (!canOff && !supported) return;
   K.stop(false);
   K.prepEdges();
+  K.setCanvas(K.expSize().h);   /* ukuran hasil = resolusi pilihan (bukan ukuran pratinjau) */
   var tot = K.total();
   if (!canOff) { exportRealtime(tot); return; }
   cancelled = false; offlineMode = true; $('#cancelBtn').disabled = false;
