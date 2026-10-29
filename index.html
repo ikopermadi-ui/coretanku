@@ -464,15 +464,24 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
         <ol class="slist" id="sceneList" aria-label="Daftar adegan, seret gagang untuk mengurutkan"></ol>
         <p class="hint" id="sampleHint" hidden>Ini adegan contoh. Saat kamu menambah gambar sendiri, contoh otomatis diganti.</p>
         <div class="actions sp">
-          <label class="f">Animasi gambar utama semua adegan
+          <label class="f">Cara muncul semua gambar
             <select id="allAnim">
               <option value="">Pilih untuk menerapkan…</option>
-              <option value="sketch">Sketsa (garis, lalu warna)</option>
-              <option value="hand">Tangan menggambar</option>
-              <option value="fade">Muncul pelan (fade)</option>
-              <option value="zoom">Zoom pelan</option>
+              <optgroup label="Digambar tangan">
+                <option value="sketch">Sketsa: garis dulu, lalu warna</option>
+                <option value="hand">Tangan menggambar langsung</option>
+              </optgroup>
+              <optgroup label="Ditempel">
+                <option value="pop">Muncul membal (pop)</option>
+                <option value="fade">Muncul pelan (fade)</option>
+                <option value="slideR">Geser masuk dari kanan</option>
+                <option value="slideL">Geser masuk dari kiri</option>
+                <option value="zoom">Zoom pelan</option>
+                <option value="none">Langsung muncul</option>
+              </optgroup>
             </select>
           </label>
+          <p class="hint" id="allAnimNote">Mengubah semua gambar di semua adegan sekaligus. Satu gambar saja: klik gambarnya di timeline, lalu atur Cara muncul di Properti.</p>
           <button class="btn small danger" id="resetAll" type="button" disabled>Reset semua adegan</button>
         </div>
       </div>
@@ -2739,7 +2748,7 @@ var state = {
   scenes: [], bgm: null, playing: false, exporting: false, fresh: true,
   set: { res: '720', fps: 30, bg: '#ffffff', fit: 'contain', hand: true, speed: 4, tool: 'pulpen', skin: 'sawo', sketchDetail: 50,
          narrVol: 100, clipVol: 100, bgmVol: 25, duck: false, denoise: 'mid', handCustom: null, flow: 'tulis', textFont: 'kalam', textSize: 'm', textColor: '#142320',
-         trType: 'pan', trDir: 'right', trSym: 'arrow', trColor: '#1D4ED8', trSize: 100, trDur: 1.6, inType: 'fade', inDir: 'right', inDur: 0.7, qual: 'std', title: '', vidName: '' }
+         trType: 'pan', trDir: 'right', trSym: 'arrow', trColor: '#1D4ED8', trSize: 100, trDur: 1.6, inType: 'fade', inDir: 'right', inDur: 0.7, qual: 'std', title: '', vidName: '', imgAnim: '' }
 };
 var uid = 0, curT = 0;
 
@@ -2803,7 +2812,7 @@ function newImageItem(url, name, role) {
   return loadImage(url).then(function (im) {
     if (!im) return null;
     var a = (im.naturalWidth || im.width) / (im.naturalHeight || im.height);
-    var it = { id: ++uid, kind: 'image', img: im, url: url, name: name || '', anim: 'sketch', speed: 'auto',
+    var it = { id: ++uid, kind: 'image', img: im, url: url, name: name || '', anim: (role !== 'sticker' && state.set.imgAnim) || 'sketch', speed: 'auto',
                x: 0.5, y: 0.5, w: Math.min(0.92, 0.92 * a / ASPECT), start: 0, end: null, edge: null, edgeDetail: -1 };
     if (role === 'sticker') {
       it.anim = 'pop'; it.w = Math.min(0.3, 0.45 * a / ASPECT); it.x = 0.8; it.y = 0.62;
@@ -4153,13 +4162,13 @@ $('#setTool').addEventListener('change', function (e) { state.set.tool = e.targe
 $('#setSkin').addEventListener('change', function (e) { state.set.skin = e.target.value; K.loadHand(); });
 $('#allAnim').addEventListener('change', function (e) {
   var v = e.target.value; if (!v) return;
-  state.scenes.forEach(function (sc) {
-    for (var i = 0; i < sc.items.length; i++) if (sc.items[i].kind === 'image') { sc.items[i].anim = v; break; }
-  });
   e.target.value = '';
-  K.prepEdges(); K.refreshUI(); K.render(K.getT());
-  K.setMsg('Animasi gambar utama semua adegan diganti.', 'ok');
+  K.applyAnim(v, null);
 });
+K.animNote = function () {
+  var n = $('#allAnimNote'), o = $('#allAnim').querySelector('option[value="' + (state.set.imgAnim || '__') + '"]');
+  n.textContent = 'Mengubah semua gambar di semua adegan sekaligus' + (o ? '. Gambar baru otomatis: ' + o.textContent.replace(/:.*$/, '') + '.' : '.') + ' Satu gambar saja: klik gambarnya di timeline, lalu atur Cara muncul di Properti.';
+};
 /* transisi */
 function trChanged() {
   var t = K.total();
@@ -4940,6 +4949,13 @@ function renderInspector() {
     sa.appendChild(mkSel(null, it.anim, function (v) {
       it.anim = v; K.prepEdges(); renderTimeline(); renderInspector(); K.render(K.getT());
     }, [['Digambar tangan', ANIMS_DRAW], ['Ditempel', ANIMS_STICK]]));
+    var ab = el('div', 'actions sp');
+    var b1 = el('button', 'btn small', 'Samakan di adegan ini'), b2 = el('button', 'btn small', 'Samakan di semua adegan');
+    b1.type = b2.type = 'button'; b1.disabled = b2.disabled = !!state.exporting;
+    b1.title = 'Pakai cara muncul ini untuk semua gambar di adegan ini'; b2.title = 'Pakai cara muncul ini untuk semua gambar di semua adegan, dan untuk gambar baru';
+    b1.addEventListener('click', function () { K.applyAnim(it.anim, s); renderInspector(); });
+    b2.addEventListener('click', function () { K.applyAnim(it.anim, null); renderInspector(); });
+    ab.appendChild(b1); ab.appendChild(b2); sa.appendChild(ab);
     insp.appendChild(sa);
   }
 
@@ -5050,10 +5066,30 @@ K.undoPush = function (s) {
   if (undoStack.length > 80) undoStack.shift();
 };
 K.undoPushSeg = function (s) { undoStack.push({ t: 'seg', sid: s.id }); if (undoStack.length > 80) undoStack.shift(); };
+/* ubah cara muncul gambar: sc = satu adegan, null = semua adegan (sekaligus jadi bawaan gambar baru) */
+K.applyAnim = function (v, sc) {
+  if (state.exporting || !v) return 0;
+  var targets = sc ? [sc] : state.scenes, n = 0;
+  var snap = targets.filter(function (x) { return !x.video; }).map(function (x) { return { sid: x.id, items: x.items.map(copyItem), itemId: ui.itemId }; });
+  targets.forEach(function (x) { x.items.forEach(function (it) { if (it.kind === 'image' && it.anim !== v) { it.anim = v; n++; } }); });
+  if (n) { undoStack.push({ t: 'multi', list: snap }); if (undoStack.length > 80) undoStack.shift(); }
+  if (!sc) { state.set.imgAnim = v; if (K.animNote) K.animNote(); }
+  K.prepEdges(); K.refreshUI(); K.render(K.getT());
+  var nm = ANIM_NAME[v].replace(/:.*$/, '');
+  K.setMsg(n ? (sc ? 'Gambar di adegan ini' : 'Semua gambar') + ' diubah jadi "' + nm + '" (' + n + ' gambar).' + (sc ? '' : ' Gambar baru juga memakai ini.') + ' Ctrl+Z untuk membatalkan.' : 'Semua gambar sudah memakai "' + nm + '".', 'ok');
+  return n;
+};
 K.undo = function () {
   if (state.exporting) return false;
   while (undoStack.length) {
-    var u = undoStack.pop(), s = sceneById(u.sid); if (!s) continue;
+    var u = undoStack.pop();
+    if (u.t === 'multi') {
+      if (state.playing) K.pause();
+      u.list.forEach(function (e) { var s2 = sceneById(e.sid); if (s2) s2.items = e.items.map(copyItem); });
+      K.prepEdges(); K.updateTotals(); K.refreshUI(); K.render(K.getT());
+      K.setMsg('Dibatalkan (Ctrl+Z): perubahan cara muncul gambar.', 'ok'); return true;
+    }
+    var s = sceneById(u.sid); if (!s) continue;
     if (state.playing) K.pause();
     if (u.t === 'seg') {
       ui.sceneId = s.id;
@@ -7139,7 +7175,7 @@ folderBtn && folderBtn.addEventListener('click', async function () {
 });
 
 var opening = false, clearAll0 = K.clearAll;
-K.clearAll = function () { if (!opening) { projName = null; state.set.title = ''; state.set.vidName = ''; $('#prjTitle').value = ''; $('#vidName').value = ''; if (K.vidPlace) K.vidPlace(); } return clearAll0.apply(this, arguments); };   /* proyek baru tidak boleh menimpa file proyek lama */
+K.clearAll = function () { if (!opening) { projName = null; state.set.title = ''; state.set.vidName = ''; state.set.imgAnim = ''; if (K.animNote) K.animNote(); $('#prjTitle').value = ''; $('#vidName').value = ''; if (K.vidPlace) K.vidPlace(); } return clearAll0.apply(this, arguments); };   /* proyek baru tidak boleh menimpa file proyek lama */
 var busy = false;
 function setBusy(on) { busy = on; ['prjSave', 'prjOpen', 'prjFolder'].forEach(function (id) { var b = $('#' + id); if (b) b.disabled = on || !!state.exporting; }); }
 K.syncProjectBtns = function () { setBusy(busy); };
@@ -7266,6 +7302,7 @@ async function openProject(file) {
     if (h.set.title == null) { var stem = K.fileBase(String(file.name || '').replace(/\.coretan$/i, ''), ''); h.set.title = /^proyek-coretan-\d{8}-\d{4}$/.test(stem) ? '' : stem; }
     if (h.set.vidName == null) h.set.vidName = '';
     applySettings(h.set);
+    if (K.animNote) K.animNote();
     if (K.vidPlace) K.vidPlace();
     if (state.set.handCustom) { $('#handSize').value = String(state.set.handCustom.size); $('#handSizeLbl').textContent = state.set.handCustom.size + '%'; $('#handSize').dispatchEvent(new Event('input', { bubbles: true })); }
     state.bgm = bgm;
