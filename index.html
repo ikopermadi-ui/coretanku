@@ -231,6 +231,9 @@ input[type=color]{height:38px;width:56px;padding:2px;border:1px solid var(--line
 .aikey summary{cursor:pointer;font-weight:700;font-size:14px;min-height:28px}
 .aikey[open] summary{margin-bottom:8px}
 .aikey>*:not(summary){margin-top:8px}
+#ghStat[data-kind=ok]{color:var(--ok,#157A4B)}
+#ghStat[data-kind=err]{color:var(--danger,#B42318)}
+#ghPanel details{margin-top:6px}#ghPanel summary{cursor:pointer;font-size:13px;font-weight:600}
 .keyrow{display:flex;gap:8px}
 .keyrow input{flex:1;min-width:0}
 body.modal-open{overflow:hidden}
@@ -661,6 +664,30 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
           </label>
           <button class="btn small" id="chalkReset" type="button">Atur ulang ujung dan ukuran</button>
         </div>
+      </div>
+
+      <div class="panel" id="ghPanel">
+        <h2>Simpan stiker ke GitHub</h2>
+        <p class="hint">Stiker yang kamu unggah otomatis dikecilkan (WebP, maksimal 900 px) lalu dikirim ke folder <b>stiker</b> di repo GitHub-mu, jadi muncul di Galeri stiker dan bisa dipakai lagi. Hanya jalan di versi GitHub Pages. Repo publik berarti semua stiker yang dikirim bisa dilihat siapa saja.</p>
+        <label class="chk"><input id="ghAuto" type="checkbox"> Simpan otomatis stiker yang saya unggah</label>
+        <label class="f">Repo (pemilik/nama)
+          <input id="ghRepo" type="text" autocomplete="off" spellcheck="false" placeholder="pemilik/nama-repo">
+        </label>
+        <label class="f">Token GitHub
+          <span class="keyrow"><input id="ghToken" type="password" autocomplete="off" spellcheck="false" placeholder="Tempel token di sini" aria-label="Token GitHub"><button class="btn small" id="ghShow" type="button">Tampilkan</button></span>
+        </label>
+        <div class="actions"><button class="btn small" id="ghTest" type="button">Tes koneksi</button><button class="btn small danger" id="ghForget" type="button">Hapus token dari browser ini</button></div>
+        <p class="hint" id="ghStat" role="status"></p>
+        <details>
+          <summary>Cara membuat token (sekali saja)</summary>
+          <ol class="hint">
+            <li>Buka github.com → foto profil → Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token.</li>
+            <li>Isi nama (misalnya Coretan), pilih masa berlaku, lalu pada Repository access pilih <b>Only select repositories</b> dan pilih repo coretanku saja.</li>
+            <li>Pada Permissions → Repository permissions, ubah <b>Contents</b> jadi <b>Read and write</b>. Izin lain biarkan.</li>
+            <li>Tekan Generate token, salin, tempel di kolom Token di atas, lalu tekan Tes koneksi.</li>
+          </ol>
+          <p class="hint">Token hanya disimpan di browser ini, tidak masuk file proyek, dan hanya dikirim ke api.github.com. Jangan dipakai di komputer bersama. Kalau token bocor, hapus di GitHub.</p>
+        </details>
       </div>
 
       <div class="panel">
@@ -5604,6 +5631,7 @@ K.addStickerFiles = function (files) {
   return Promise.all(files.map(function (f) { return K.newImageItem(URL.createObjectURL(f), f.name, 'sticker'); })).then(function (list) {
     var ok = list.filter(Boolean);
     ok.forEach(function (it, i) { K.addStickerItem(it, it.name, { offset: i * 0.5 }); });
+    list.forEach(function (it, i) { if (it && K.ghAutoSave) K.ghAutoSave(files[i], it); });
     if (ok.length < files.length) K.setMsg((files.length - ok.length) + ' file gagal dibuka sebagai gambar.', 'err');
     else K.setMsg(ok.length + ' stiker ditambahkan ke video. Atur kapan tampil di jalur Stiker video, atau seret langsung di layar.', 'ok');
     K.renderStickers(); K.render(K.getT());
@@ -5896,6 +5924,7 @@ function renderInsp() {
 
   var so = sec('Gambar');
   so.appendChild(mkBtn(st.orig ? 'Kembalikan latar asli' : 'Hapus latar putih', function () { toggleKey(st); }));
+  so.appendChild(mkBtn('Simpan ke galeri GitHub', function () { if (K.ghSaveImage) K.ghSaveImage(st.img, st.name || 'stiker'); }));
   so.appendChild(el('span', 'hint', 'Berguna untuk gambar berlatar putih (misalnya hasil AI) supaya tempel rapi tanpa kotak putih.'));
   insp.appendChild(so);
 
@@ -5926,15 +5955,18 @@ K.onStickerTotalChanged = function () { var T = totalT(); state.stickers.forEach
 
 (function () {
 'use strict';
-/* Galeri stiker: membaca semua gambar di folder "stiker" pada repo GitHub (lewat GitHub Pages).
-   Urutan sumber daftar: (1) GitHub API, hanya bila halaman ini berjalan di *.github.io atau ada ?repo=pemilik/nama,
-   (2) berkas daftar stiker/stiker.json (opsional, isinya larik nama file), (3) daftar isi folder bila server menampilkannya. */
-var K = window.__coretan, $ = K.$, state = K.state, el = K.el;
-var DIR = 'stiker', EXT = /\.(png|jpe?g|webp|gif|svg|avif)$/i;
-var strip = $('#galStrip'), info = $('#galInfo'), q = $('#galQ');
-var list = [], loaded = false, loading = false;
+/* Simpan stiker ke GitHub: stiker yang diunggah lewat app dikecilkan (WebP, maksimal 900 px) lalu dikirim ke folder
+   "stiker" di repo lewat GitHub API, sehingga muncul di galeri stiker. Token disimpan hanya di browser ini (localStorage),
+   tidak masuk file proyek dan tidak ikut ekspor. */
+var K = window.__coretan, $ = K.$, state = K.state;
+var LSK = 'coretan.gh', DIR = 'stiker', MAXPX = 900, QUALITY = 0.9;
 
-function repoSpec() {
+function lsGet() { try { return JSON.parse(localStorage.getItem(LSK) || '{}') || {}; } catch (e) { return {}; } }
+function lsSet(o) { try { localStorage.setItem(LSK, JSON.stringify(o)); } catch (e) {} }
+var cfg = lsGet();
+
+/* repo bawaan dari alamat halaman: pemilik.github.io/nama-repo/ */
+K.repoSpec = function () {
   try {
     var m = /[?&]repo=([\w.-]+)\/([\w.-]+)/.exec(location.search);
     if (m) return { owner: m[1], repo: m[2], param: true };
@@ -5942,16 +5974,179 @@ function repoSpec() {
     if (/\.github\.io$/i.test(h)) return { owner: h.split('.')[0], repo: p[0] && !/\.html?$/i.test(p[0]) ? p[0] : h };
   } catch (e) {}
   return null;
+};
+function repoStr() {
+  var r = (cfg.repo || '').trim();
+  if (r) return r;
+  var s = K.repoSpec(); return s ? s.owner + '/' + s.repo : '';
+}
+K.ghRepo = repoStr;
+K.ghToken = function () { return (cfg.token || '').trim(); };
+K.ghAuto = function () { return !!cfg.auto && !!K.ghToken() && /^[\w.-]+\/[\w.-]+$/.test(repoStr()); };
+K.ghHeaders = function () {
+  var h = { 'Accept': 'application/vnd.github+json' };
+  if (K.ghToken()) h['Authorization'] = 'Bearer ' + K.ghToken();
+  return h;
+};
+
+var elAuto = $('#ghAuto'), elRepo = $('#ghRepo'), elTok = $('#ghToken'), elStat = $('#ghStat');
+function stat(t, kind) { elStat.textContent = t || ''; elStat.dataset.kind = kind || ''; }
+function showState() {
+  elAuto.checked = !!cfg.auto; elRepo.value = cfg.repo || ''; elRepo.placeholder = repoStr() || 'pemilik/nama-repo';
+  elTok.value = cfg.token || '';
+  if (!K.ghToken()) stat('Belum ada token. Tanpa token, stiker tidak dikirim ke GitHub.');
+  else if (!cfg.auto) stat('Token tersimpan. Penyimpanan otomatis mati; stiker bisa disimpan manual lewat tombol di panel stiker.');
+  else stat('Penyimpanan otomatis aktif ke ' + repoStr() + '.', 'ok');
+}
+function save() { lsSet(cfg); showState(); }
+elAuto.addEventListener('change', function () { cfg.auto = elAuto.checked; save(); });
+elRepo.addEventListener('change', function () { cfg.repo = elRepo.value.trim(); save(); if (K.loadGallery) K.loadGallery(); });
+elTok.addEventListener('change', function () { cfg.token = elTok.value.trim(); save(); if (K.loadGallery) K.loadGallery(); });
+$('#ghShow').addEventListener('click', function () { var h = elTok.type === 'password'; elTok.type = h ? 'text' : 'password'; $('#ghShow').textContent = h ? 'Sembunyikan' : 'Tampilkan'; });
+$('#ghForget').addEventListener('click', function () { cfg.token = ''; cfg.auto = false; save(); if (K.setMsg) K.setMsg('Token GitHub dihapus dari browser ini.', 'ok'); });
+
+function errText(status, body) {
+  var m = body && body.message ? ' (' + body.message + ')' : '';
+  if (status === 401) return 'Token ditolak GitHub (salah atau sudah kedaluwarsa). Buat token baru dan tempel lagi.' + m;
+  if (status === 403) return 'Token tidak punya izin menulis, atau kuota GitHub habis. Pastikan izin Contents = Read and write.' + m;
+  if (status === 404) return 'Repo tidak ditemukan atau token tidak punya akses ke repo itu. Cek nama repo (pemilik/nama) dan akses token.' + m;
+  if (status === 422) return 'GitHub menolak file itu.' + m;
+  return 'GitHub membalas kode ' + status + '.' + m;
+}
+function netFail(e) { return 'Tidak bisa terhubung ke GitHub. Fitur ini hanya jalan di versi GitHub Pages (di artifact claude.ai koneksi keluar diblokir) dan butuh internet.'; }
+function gh(path, opt) {
+  opt = opt || {}; opt.headers = Object.assign(K.ghHeaders(), opt.headers || {}); opt.cache = 'no-store';
+  return fetch('https://api.github.com' + path, opt);
+}
+
+$('#ghTest').addEventListener('click', function () {
+  var r = repoStr();
+  if (!K.ghToken()) { stat('Tempel token dulu.', 'err'); return; }
+  if (!/^[\w.-]+\/[\w.-]+$/.test(r)) { stat('Isi nama repo dengan format pemilik/nama-repo.', 'err'); return; }
+  stat('Menguji koneksi…');
+  gh('/repos/' + r).then(function (res) {
+    return res.json().catch(function () { return {}; }).then(function (b) {
+      if (!res.ok) { stat(errText(res.status, b), 'err'); return; }
+      if (b.permissions && !b.permissions.push) { stat('Token terbaca, tapi tidak punya izin menulis ke ' + r + '. Izin Contents harus Read and write.', 'err'); return; }
+      stat('Terhubung ke ' + b.full_name + (b.private ? ' (repo privat)' : ' (repo publik: stiker yang dikirim bisa dilihat siapa saja)') + '. Siap menyimpan stiker.', 'ok');
+    });
+  }, function (e) { stat(netFail(e), 'err'); });
+});
+
+/* ---------- kompres ---------- */
+function toB64(blob) {
+  return new Promise(function (ok, no) {
+    var fr = new FileReader();
+    fr.onload = function () { ok(String(fr.result).replace(/^data:[^,]*,/, '')); };
+    fr.onerror = function () { no(fr.error); };
+    fr.readAsDataURL(blob);
+  });
+}
+/* img = gambar yang sudah dimuat; file = berkas asli (opsional, untuk SVG). Hasil: { blob, ext } */
+function compress(img, file) {
+  if (file && (file.type === 'image/svg+xml' || /\.svg$/i.test(file.name || ''))) {
+    return file.size > 1.5 * 1048576 ? Promise.reject(new Error('SVG terlalu besar')) : Promise.resolve({ blob: file, ext: 'svg' });
+  }
+  var iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+  if (!iw || !ih) return Promise.reject(new Error('gambar kosong'));
+  var k = Math.min(1, MAXPX / Math.max(iw, ih)), w = Math.max(1, Math.round(iw * k)), h = Math.max(1, Math.round(ih * k));
+  var c = document.createElement('canvas'); c.width = w; c.height = h;
+  var g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(img, 0, 0, w, h);
+  return new Promise(function (ok, no) {
+    c.toBlob(function (b) {
+      if (!b) { no(new Error('gagal mengompres')); return; }
+      ok({ blob: b, ext: b.type === 'image/webp' ? 'webp' : 'png' });   /* Safari tidak bisa menyimpan WebP: otomatis PNG */
+    }, 'image/webp', QUALITY);
+  });
+}
+K.ghCompress = compress;
+
+/* ---------- unggah (satu per satu, supaya tidak bentrok di GitHub) ---------- */
+var queue = Promise.resolve();
+function put(repo, name, b64, msg, tries) {
+  return gh('/repos/' + repo + '/contents/' + DIR + '/' + encodeURIComponent(name), {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: msg, content: b64 })
+  }).then(function (res) {
+    return res.json().catch(function () { return {}; }).then(function (b) { return { res: res, body: b }; });
+  }).then(function (o) {
+    if (o.res.status === 409 && tries < 3) return new Promise(function (ok) { setTimeout(ok, 900); }).then(function () { return put(repo, name, b64, msg, tries + 1); });
+    return o;
+  });
+}
+function pickName(base, ext) {
+  var have = K.galNames ? K.galNames() : {}, n = base + '.' + ext, i = 2;
+  while (have[n.toLowerCase()]) n = base + '-' + (i++) + '.' + ext;
+  return n;
+}
+/* Simpan satu gambar ke galeri. opt.quiet: tanpa pesan sukses terpisah */
+K.ghSaveImage = function (img, name, file, opt) {
+  opt = opt || {};
+  var repo = repoStr();
+  if (!K.ghToken() || !/^[\w.-]+\/[\w.-]+$/.test(repo)) {
+    K.setMsg('Isi token dan nama repo GitHub dulu di tab Pengaturan, bagian "Simpan stiker ke GitHub".', 'err');
+    return Promise.resolve(false);
+  }
+  var base = K.fileBase(String(name || 'stiker').replace(/\.[^.\\/]+$/, ''), 'stiker');
+  return (queue = queue.then(function () {
+    return compress(img, file).then(function (c) {
+      return toB64(c.blob).then(function (b64) {
+        var attempt = 0;
+        function go() {
+          var fn = pickName(base, c.ext);
+          K.setMsg('Menyimpan stiker "' + fn + '" ke GitHub (' + Math.max(1, Math.round(c.blob.size / 1024)) + ' KB)…');
+          return put(repo, fn, b64, 'Tambah stiker: ' + fn, 0).then(function (o) {
+            if (o.res.status === 422 && attempt < 5 && /sha/i.test(String(o.body && o.body.message))) {
+              /* nama sudah dipakai di GitHub (belum ada di daftar galeri): tandai lalu coba nama lain */
+              if (K.galMark) K.galMark(fn); attempt++; return go();
+            }
+            if (!o.res.ok) { K.setMsg('Stiker belum tersimpan ke GitHub. ' + errText(o.res.status, o.body), 'err'); return false; }
+            if (K.galAdd) K.galAdd({ name: fn, url: DIR + '/' + encodeURIComponent(fn), local: URL.createObjectURL(c.blob) });
+            K.setMsg('Stiker "' + fn + '" tersimpan di GitHub dan masuk galeri. Setelah GitHub Pages selesai memperbarui (sekitar satu menit), stiker ini tersedia permanen di semua perangkat.', 'ok');
+            return true;
+          });
+        }
+        return go();
+      });
+    }).catch(function (e) {
+      K.setMsg(e instanceof TypeError ? netFail(e) : 'Stiker tidak bisa disimpan ke GitHub: ' + (e && e.message ? e.message : e), 'err');
+      return false;
+    });
+  }));
+};
+/* dipanggil setelah stiker diunggah dari berkas: item = hasil K.newImageItem */
+K.ghAutoSave = function (file, item) {
+  if (!K.ghAuto() || !item || !item.img) return;
+  K.ghSaveImage(item.img, file.name, file);
+};
+showState();
+})();
+
+(function () {
+'use strict';
+/* Galeri stiker: membaca semua gambar di folder "stiker" pada repo GitHub (lewat GitHub Pages).
+   Urutan sumber daftar: (1) GitHub API, hanya bila halaman ini berjalan di *.github.io atau ada ?repo=pemilik/nama,
+   (2) berkas daftar stiker/stiker.json (opsional, isinya larik nama file), (3) daftar isi folder bila server menampilkannya. */
+var K = window.__coretan, $ = K.$, state = K.state, el = K.el;
+var DIR = 'stiker', EXT = /\.(png|jpe?g|webp|gif|svg|avif)$/i;
+var strip = $('#galStrip'), info = $('#galInfo'), q = $('#galQ');
+var list = [], loaded = false, loading = false, localOf = {};
+
+function repoSpec() {
+  var s = K.repoSpec && K.repoSpec();
+  if (s) return s;
+  var m = /^([\w.-]+)\/([\w.-]+)$/.exec((K.ghRepo && K.ghRepo()) || '');
+  return m ? { owner: m[1], repo: m[2], param: true } : null;
 }
 function fileUrl(name) { return DIR + '/' + encodeURIComponent(name); }
-function tryJSON(url) {
-  return fetch(url, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); });
+function tryJSON(url, auth) {
+  return fetch(url, { cache: 'no-store', headers: auth && K.ghHeaders ? K.ghHeaders() : {} }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); });
 }
 function viaApi() {
   var rp = repoSpec(); if (!rp) return Promise.reject(new Error('bukan github.io'));
-  return tryJSON('https://api.github.com/repos/' + rp.owner + '/' + rp.repo + '/contents/' + DIR).then(function (arr) {
+  return tryJSON('https://api.github.com/repos/' + rp.owner + '/' + rp.repo + '/contents/' + DIR, true).then(function (arr) {
     if (!Array.isArray(arr)) throw new Error('bukan folder');
-    return arr.filter(function (f) { return f.type === 'file' && EXT.test(f.name); }).map(function (f) { return { name: f.name, url: rp.param ? f.download_url : fileUrl(f.name) }; });
+    return arr.filter(function (f) { return f.type === 'file' && EXT.test(f.name); }).map(function (f) { return { name: f.name, url: rp.param ? f.download_url : fileUrl(f.name), local: localOf[f.name] }; });
   });
 }
 function viaManifest() {
@@ -5980,6 +6175,15 @@ function load() {
     loaded = true;
   }, function () { list = []; loaded = false; }).then(function () { loading = false; render(); });
 }
+/* dipakai penyimpanan GitHub: nama yang sudah ada, tambah entri baru (dengan salinan lokal untuk pratinjau sebelum Pages diperbarui) */
+K.galNames = function () { var o = {}; list.forEach(function (f) { o[f.name.toLowerCase()] = 1; }); return o; };
+K.galMark = function (n) { list.push({ name: n, url: fileUrl(n) }); };
+K.galAdd = function (e) {
+  localOf[e.name] = e.local; loaded = true;
+  list = list.filter(function (f) { return f.name !== e.name; }); list.push(e);
+  list.sort(function (a, b) { return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }); });
+  render();
+};
 function nice(n) { return n.replace(EXT, '').replace(/[_-]+/g, ' '); }
 function render() {
   strip.textContent = '';
@@ -5992,7 +6196,7 @@ function render() {
   info.textContent = term ? shown.length + ' dari ' + list.length + ' stiker. Klik untuk memakai di adegan terpilih.' : list.length + ' stiker. Klik untuk memakai di adegan terpilih.';
   shown.forEach(function (f) {
     var b = el('button', 'gal-it'); b.type = 'button'; b.title = f.name; b.setAttribute('role', 'listitem');
-    var im = document.createElement('img'); im.src = f.url; im.alt = ''; im.loading = 'lazy'; im.decoding = 'async'; b.appendChild(im);
+    var im = document.createElement('img'); im.src = f.local || f.url; im.alt = ''; im.loading = 'lazy'; im.decoding = 'async'; b.appendChild(im);
     b.appendChild(el('span', null, nice(f.name)));
     b.addEventListener('click', function () { use(f, b); });
     strip.appendChild(b);
@@ -6003,7 +6207,7 @@ function use(f, btn) {
   var s = K.selScene();
   if (!s) { K.setMsg('Pilih adegan atau klip di daftar kiri dulu, supaya stiker tampil di bagian itu.'); return; }
   btn.classList.add('busy');
-  fetch(f.url, { cache: 'force-cache' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.blob(); }).then(function (blob) {
+  fetch(f.local || f.url, { cache: 'force-cache' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.blob(); }).then(function (blob) {
     return K.newImageItem(URL.createObjectURL(blob), f.name, 'sticker');
   }).then(function (it) {
     if (!it) throw new Error('gambar');
